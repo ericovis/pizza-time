@@ -1,30 +1,38 @@
-from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from delivery.models import Pizza, Order
+
+from delivery.models import *
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', 'id', 'url')
-
-
-class PizzaSerializer(serializers.HyperlinkedModelSerializer):
+class PizzaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pizza
-        fields = ('name', 'price', 'url')
+        fields = '__all__'
 
-class GetOrderSerializer(serializers.HyperlinkedModelSerializer):
-    pizzas = serializers.StringRelatedField(many=True)
-    user = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username'
-     )
+
+class AddOrderSerializer(serializers.ModelSerializer):
+    pizzas = serializers.PrimaryKeyRelatedField(many=True,
+                                                queryset=Pizza.objects.all(),
+                                                allow_empty=False)
+
     class Meta:
         model = Order
-        fields = ('id', 'user', 'pizzas', 'total', 'status', 'url')
+        fields = ('pizzas', 'user', 'total', 'id', 'status')
+        read_only_fields = ('status', 'total', 'user')
 
-class NewOrderSerializer(serializers.HyperlinkedModelSerializer):
+    def create(self, validated_data):
+        pizzas = validated_data.pop('pizzas')
+        order = Order(user=self.context['request'].user)
+        for pizza in pizzas:
+            order.total += pizza.price
+            order.pizzas.add(pizza)
+        order.save()
+        return order
+
+
+class GetOrderSerializer(serializers.ModelSerializer):
+    pizzas = PizzaSerializer(many=True)
+
     class Meta:
         model = Order
-        fields = ('id', 'user', 'pizzas', 'total', 'status', 'url')
+        fields = ('pizzas', 'user', 'total', 'id', 'status')
+        read_only_fields = ('status', 'total', 'user')

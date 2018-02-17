@@ -19,13 +19,17 @@ class Order(models.Model):
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    pizzas = models.ManyToManyField(Pizza)
-    total = models.DecimalField(max_digits=7, decimal_places=2)
-    status = models.CharField(max_length=1, choices=status_choices)
+    pizzas = models.ManyToManyField(Pizza, blank=False)
+    status = models.CharField(max_length=1,
+                              choices=status_choices,
+                              default='R')
+
+    @property
+    def total(self):
+        t = 0
+        for p in self.pizzas.all():
+            t += p.price
+        return t
 
     def __str__(self):
-        return "Order {}: {} item(s) - Total: USD {}".format(
-                                                             self.id,
-                                                             len(self.pizzas),
-                                                             self.total
-                                                             )
+        return "Order {} - Total: USD {}".format(self.id, self.total)

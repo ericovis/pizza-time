@@ -2,7 +2,6 @@
 import os
 import sys
 
-from time import sleep
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pizza_time.settings")
@@ -15,6 +14,4 @@ if __name__ == "__main__":
             "forget to activate a virtual environment?"
         ) from exc
 
-    if 'runserver' in sys.argv:
-        sleep(6)
     execute_from_command_line(sys.argv)
