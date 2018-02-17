@@ -20,15 +20,7 @@ function url_base64_decode(str) {
 app.controller('UserCtrl', function ($scope, $http, $window, $rootScope) {
 
   $scope.user = {username: 'jklimber', password: 'start123'};
-  $scope.isAuthenticated = false;
-  $scope.welcome = '';
-  $scope.message = '';
-
-  $rootScope.authInfo =   {
-    "username": "",
-    "id": "",
-    "url": ""
-  };
+  $scope.isAuthenticated = (typeof $window.sessionStorage.profile !== "undefined");
 
   $scope.login = function () {
     $http
@@ -37,30 +29,26 @@ app.controller('UserCtrl', function ($scope, $http, $window, $rootScope) {
         $window.sessionStorage.token = data.token;
         $scope.isAuthenticated = true;
         var encodedProfile = data.token.split('.')[1];
-        var profile = JSON.parse(url_base64_decode(encodedProfile));
+        $window.sessionStorage.profile = JSON.parse(url_base64_decode(encodedProfile));
+        $scope.welcome = '';
+        $scope.message = '';
+
       })
       .error(function (data, status, headers, config) {
         // Erase the token if the user fails to log in
         delete $window.sessionStorage.token;
-        $scope.isAuthenticated = false;
-
         // Handle login errors here
         $scope.error = 'Error: Invalid user or password';
         alert($scope.error);
-        $scope.welcome = '';
       });
   };
 
   $scope.logout = function () {
-    $scope.welcome = '';
-    $scope.message = '';
     $scope.isAuthenticated = false;
-    $rootScope.authInfo =   {
-      "username": "",
-      "id": "",
-      "url": ""
-    };
+    delete $scope.welcome;
+    delete $scope.message;
     delete $window.sessionStorage.token;
+    delete $window.sessionStorage.profile;
   };
 
 })
