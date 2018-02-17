@@ -8,7 +8,7 @@ from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = [
     path('api/v1/auth/', obtain_jwt_token),
-    path('api/v1/delivery/', include('delivery.urls')),
+    path('api/v1/', include('delivery.urls')),
 ]
 
 if os.environ.get('DJANGO_ENV', '') == 'dev':

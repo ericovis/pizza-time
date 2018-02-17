@@ -16,14 +16,14 @@ class AddOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('pizzas', 'user', 'total', 'id', 'status')
-        read_only_fields = ('status', 'total', 'user')
+        fields = ('pizzas', 'id')
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
         pizzas = validated_data.pop('pizzas')
         order = Order(user=self.context['request'].user)
+        order.save()
         for pizza in pizzas:
-            order.total += pizza.price
             order.pizzas.add(pizza)
         order.save()
         return order
@@ -31,8 +31,15 @@ class AddOrderSerializer(serializers.ModelSerializer):
 
 class GetOrderSerializer(serializers.ModelSerializer):
     pizzas = PizzaSerializer(many=True)
+    status = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ('pizzas', 'user', 'total', 'id', 'status')
-        read_only_fields = ('status', 'total', 'user')
+        fields = ('pizzas', 'total', 'id', 'status', 'user')
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_user(self, obj):
+        return obj.user.username

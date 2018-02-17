@@ -5,7 +5,7 @@ app.controller('NewOrderCtrl', function ($scope, $http, $window, $rootScope) {
   $scope.cart = [];
   $scope.review = false;
 
-  $http({url: $rootScope.APIURL + '/api/pizzas/get/', method: 'GET'})
+  $http({url: $rootScope.APIURL + '/pizzas/', method: 'GET'})
   .success(function (data, status, headers, config) {
     $scope.pizzasList = data;
   })
@@ -14,30 +14,24 @@ app.controller('NewOrderCtrl', function ($scope, $http, $window, $rootScope) {
   });
 
   $scope.order = {
-    user: $rootScope.authInfo.url,
-    pizzas: [],
-    total: 5.00,
-    status: "Ordered"
+    pizzas: []
   };
 
 
   $scope.checkout = function (){
       $scope.order = {
-        user: $rootScope.authInfo.url,
         pizzas: [],
-        total: 5.00,
-        status: "Ordered"
+        total: 0.00
       };
       $scope.selectedPizzas = [];
 
       for (var i = 0 ; i < $scope.cart.length ; i++){
         var obj = JSON.parse($scope.cart[i]);
         $scope.order.total += Number(obj.price);
-        $scope.order.pizzas.push(obj.url);
+        $scope.order.pizzas.push(obj.id);
         $scope.selectedPizzas.push({name: obj.name, price: obj.price });
       };
       if ($scope.order.pizzas.length > 0){
-        $scope.order.total += 5;
         $scope.order.total = $scope.order.total.toFixed(2);
         $scope.order.total = $scope.order.total.toString();
 
@@ -46,7 +40,7 @@ app.controller('NewOrderCtrl', function ($scope, $http, $window, $rootScope) {
   };
 
   $scope.submitOrder = function () {
-    $http.post($rootScope.APIURL + '/api/orders/new/', $scope.order)
+    $http.post($rootScope.APIURL + '/orders/', $scope.order)
     .success(function (data, status, headers, config) {
       console.log(data);
       $window.location.href = '#/orders/' + data.id + '/new/';

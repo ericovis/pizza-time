@@ -32,4 +32,4 @@ class Order(models.Model):
         return t
 
     def __str__(self):
-        return "Order {} - Total: USD {}".format(self.id, self.total)
+        return "Order {}".format(self.id)
