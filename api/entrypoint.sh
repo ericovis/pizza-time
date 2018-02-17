@@ -8,7 +8,9 @@ start-dev (){
 }
 
 prod-server (){
-  uwsgi --http 0.0.0.0:8000 --module pizza_time.wsgi --uid app -p 15
+  mkdir -p /app/static
+  python manage.py collectstatic --noinput
+  uwsgi --http 0.0.0.0:8000 --module pizza_time.wsgi --uid app -p 20 --static-map /static=/app/static
 }
 
 if [[ $1 = "start-dev" ]]; then

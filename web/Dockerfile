@@ -1,9 +1,5 @@
 FROM node:8.9.4
-RUN apt-get install -y nginx
-ENV PYTHONUNBUFFERED 1
-ADD entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+RUN apt-get update && apt-get install -y nginx && npm install -g live-server
+ADD nginx.conf /etc/nginx/sites-enabled/default
 WORKDIR /app
-RUN npm install -g live-server
 COPY . .

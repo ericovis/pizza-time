@@ -5,9 +5,6 @@ angular.module('pizza', ['ngRoute', 'ngResource'])
   $routeProvider.when('/', {
     templateUrl: 'static/partials/home.html'
   })
-  .when('/about', {
-    templateUrl: 'static/partials/about.html',
-  })
   .when('/orders', {
     templateUrl: 'static/partials/orders.html',
     controller: 'OrdersCtrl',
@@ -23,7 +20,7 @@ angular.module('pizza', ['ngRoute', 'ngResource'])
 
 })
 .run(function($rootScope) {
-  $rootScope.APIURL = "http://localhost/api/v1";
+  $rootScope.APIURL = "http://localhost:8000/api/v1";
 })
 .config(['$resourceProvider', function($resourceProvider) {
   // Don't strip trailing slashes from calculated URLs
