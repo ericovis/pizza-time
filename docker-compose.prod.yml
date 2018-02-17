@@ -25,6 +25,8 @@ services:
     depends_on:
       - db
     command: prod-server
+    ports:
+      - "8000:8000"
     environment:
       DJANGO_ENV: prod
       DB_NAME: pizza-dev
