@@ -23,7 +23,7 @@ angular.module('pizza', ['ngRoute', 'ngResource'])
 
 })
 .run(function($rootScope) {
-  $rootScope.APIURL = "http://localhost:8000/api/v1";
+  $rootScope.APIURL = "http://localhost/api/v1";
 })
 .config(['$resourceProvider', function($resourceProvider) {
   // Don't strip trailing slashes from calculated URLs

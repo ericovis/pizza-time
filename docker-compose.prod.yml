@@ -1,0 +1,34 @@
+version: '3'
+services:
+  db:
+    image: postgres:10.1-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pizza-dev
+    volumes:
+      - ./.docker_volumes/pg-prod:/var/lib/postgresql/data
+  web:
+    build: .
+    restart: always
+    depends_on:
+      - api
+      - db
+    ports:
+      - "80:80"
+    links:
+      - api
+  api:
+    build: ./api
+    restart: always
+    depends_on:
+      - db
+    command: prod-server
+    environment:
+      DJANGO_ENV: prod
+      DB_NAME: pizza-dev
+      DB_USER: postgres
+      DB_PASS: password
+      DB_HOST: db
+    links:
+      - db
