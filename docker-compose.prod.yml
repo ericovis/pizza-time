@@ -11,7 +11,7 @@ services:
   web:
     build: ./web
     restart: always
-    command: nginx -g 'daemon off';
+    command: nginx -g 'daemon off'; 
     depends_on:
       - api
       - db
