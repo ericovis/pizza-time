@@ -1,13 +1,5 @@
 version: '3'
 services:
-  db:
-    image: postgres:10.1-alpine
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: pizza-dev
-    volumes:
-      - ./.docker_volumes/pg:/var/lib/postgresql/data
   web:
     build: ./web
     command: live-server --port=8080 --host=0.0.0.0 --verbose
@@ -38,3 +30,11 @@ services:
       DB_HOST: db
     links:
       - db
+  db:
+    image: postgres:10.1-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pizza-dev
+    volumes:
+      - ./.docker_volumes/pg:/var/lib/postgresql/data

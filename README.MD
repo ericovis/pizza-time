@@ -13,22 +13,16 @@ To download/clone the repo and in the project's folder type:
 docker-compose build
 ```
 
-That will build the container. Once it's done run the bellow command to start the DB container:
+That will build the container. Once it's done run the bellow command to start the containers:
 
 ```
-docker-compose up db -d
+docker-compose up -d
 ```
 
 Now run these commands to configure the database and load the initial data:
 
 ```
-docker-compose run api python manage.py migrate
-```
-
-Now you are ready to run the app, to start the web server use this command:
-
-```
-docker-compose up
+docker-compose exec api python manage.py migrate
 ```
 
 ### Run the prod-ish environment (local)
@@ -41,20 +35,14 @@ To download/clone the repo and in the project's folder type:
 docker-compose --file=docker-compose.prod.yml build
 ```
 
-That will build the container. Once it's done run the bellow command to start the DB container:
+That will build the container. Once it's done run the bellow command to start the containers:
 
 ```
-docker-compose --file=docker-compose.prod.yml up db -d
+docker-compose --file=docker-compose.prod.yml up -d
 ```
 
 Now run these commands to configure the database and load the initial data:
 
 ```
-docker-compose --file=docker-compose.prod.yml run api python manage.py migrate
-```
-
-Now you are ready to run the app, to start the web server use this command:
-
-```
-docker-compose --file=docker-compose.prod.yml up
+docker-compose --file=docker-compose.prod.yml exec api python manage.py migrate
 ```
