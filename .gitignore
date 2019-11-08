@@ -92,3 +92,6 @@ ENV/
 
 # Elastic Beanstalk Files
 .docker_volumes
+wal/
+lock
+queries.*

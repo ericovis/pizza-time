@@ -1,7 +1,9 @@
-version: '3'
+version: '3.4'
 services:
   web:
-    build: ./web
+    build: 
+      context: ./web
+      target: dev
     command: live-server --port=8080 --host=0.0.0.0 --verbose
     restart: always
     depends_on:
@@ -13,7 +15,9 @@ services:
     links:
       - api
   api:
-    build: ./api
+    build: 
+      context: ./api
+      target: dev
     restart: always
     depends_on:
       - db
@@ -31,10 +35,19 @@ services:
     links:
       - db
   db:
-    image: postgres:10.1-alpine
+    image: postgres:11-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: pizza-dev
     volumes:
       - ./.docker_volumes/pg:/var/lib/postgresql/data
+  metrics:
+    image: prom/prometheus
+    command: --config.file=/conf/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/conf/prometheus.yml
+    links:
+      - api
+    ports:
+      - 9090:9090
