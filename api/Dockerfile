@@ -1,9 +1,13 @@
-FROM python:3.6
+FROM python:3.7 as base
 ENV PYTHONUNBUFFERED 1
-ADD entrypoint.sh /
-RUN chmod +x /entrypoint.sh && useradd app
-ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /app
-ADD requirements.txt .
-RUN pip install -r requirements.txt
-ADD . .
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh && pip install pipenv pip --upgrade
+ENTRYPOINT ["/entrypoint.sh"]
+COPY Pipfile Pipfile.lock ./
+RUN pipenv install --system
+COPY . .
+
+FROM base as dev
+RUN pipenv install --system --dev
+

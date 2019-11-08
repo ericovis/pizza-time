@@ -1,3 +1,4 @@
+import os
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -13,4 +14,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls',
                               namespace='rest_framework')),
+    path('', include('django_prometheus.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
