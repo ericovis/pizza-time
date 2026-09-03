@@ -1,18 +1,17 @@
-from django.conf.urls import url, include
-from rest_framework_jwt.views import obtain_jwt_token
+from django.urls import include, path
 from rest_framework import routers
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from . import views
 
-
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'pizzas/get', views.PizzaViewSet)
-router.register(r'orders/get', views.GetOrderViewSet)
-router.register(r'orders/new', views.NewOrderViewSet)
+router.register(r"users", views.UserViewSet)
+router.register(r"pizzas/get", views.PizzaViewSet)
+router.register(r"orders/get", views.GetOrderViewSet, basename="order")
+router.register(r"orders/new", views.NewOrderViewSet, basename="order-new")
 
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    url(r'^', include(router.urls)),
-    url(r'^auth/', obtain_jwt_token),
+    path("", include(router.urls)),
+    path("auth/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
