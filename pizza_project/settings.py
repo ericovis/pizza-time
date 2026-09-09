@@ -7,6 +7,7 @@ list and docker-compose.yml for the local development values.
 """
 
 import os
+from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -73,9 +74,16 @@ ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 
 SIMPLE_JWT = {
-    # "JWT" is what the original djangorestframework-jwt used and what the
-    # AngularJS interceptor still sends; "Bearer" is simplejwt's default.
+    # "JWT" is what the original djangorestframework-jwt used; "Bearer" is
+    # simplejwt's default and what the React frontend sends.
     "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
+    # A demo session should not log itself out mid-sentence. The frontend
+    # still refreshes once on a 401 before giving up.
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Refuses staff accounts and adds `username` to the response; see
+    # delivery/auth.py.
+    "TOKEN_OBTAIN_SERIALIZER": "delivery.auth.CustomerTokenObtainPairSerializer",
 }
 
 MIDDLEWARE = [

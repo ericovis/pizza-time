@@ -5,7 +5,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r"users", views.UserViewSet)
 router.register(r"pizzas/get", views.PizzaViewSet)
 router.register(r"orders/get", views.GetOrderViewSet, basename="order")
 router.register(r"orders/new", views.NewOrderViewSet, basename="order-new")

@@ -16,6 +16,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from delivery.models import Order, OrderItem, Pizza
+from delivery.pricing import item_name, unit_price
 
 # Copied from the design prototype's PIZZAS list. Order matters: it is the
 # order the menu grid shows, and the ids it produces on a fresh database.
@@ -283,7 +284,7 @@ class Command(BaseCommand):
                 order=order,
                 slices=[pizza.pk for pizza in flavors],
                 quantity=quantity,
-                unit_price=max(pizza.price for pizza in flavors),
+                unit_price=unit_price(flavors),
                 name=item_name(flavors),
             )
         order.recompute_total()
@@ -292,10 +293,3 @@ class Command(BaseCommand):
         self.created["orders"] += 1
         return order
 
-
-def item_name(flavors):
-    """"Broccoli" for a single flavor, "Your 4-flavor pizza" for a mix."""
-    distinct = {pizza.pk: pizza for pizza in flavors}
-    if len(distinct) == 1:
-        return flavors[0].name
-    return "Your %s-flavor pizza" % len(distinct)
