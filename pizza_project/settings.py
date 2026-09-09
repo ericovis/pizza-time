@@ -29,9 +29,8 @@ DEBUG = env_bool("DEBUG", True)
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
-# The frontend is served from a different origin than the API (an nginx
-# container locally, S3/CloudFront in the course's deployment exercises), so
-# CORS is always in play. Allow-all stays the default for the demo; set
+# The frontend is served from a different origin than the API (its own nginx
+# container), so CORS is always in play. Allow-all stays the default for the demo; set
 # CORS_ALLOWED_ORIGINS to lock it down.
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS

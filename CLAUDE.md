@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A demo pizza-ordering app — Django REST Framework API plus an AngularJS 1.5 frontend — originally the deployable workload for the Cloud Academy *SysOps Administrator — Associate for AWS* learning path. The AWS deployment assets (Elastic Beanstalk config, CloudFormation template, EC2 user-data, CloudWatch scripts) are as much the point of the repo as the app.
+A demo pizza-ordering app — Django REST Framework API plus an AngularJS 1.5 frontend. It is a Docker-only project: Docker Compose is the sole supported way to run it, and there are no cloud deployment assets (the former Elastic Beanstalk, CloudFormation, EC2 and CloudWatch material was removed).
 
 The stack was modernized from Python 2.7 / Django 1.9 / MySQL to **Python 3.12, Django 5.2 LTS, DRF, PostgreSQL**. Do not reintroduce Python 2 idioms.
 
@@ -36,10 +36,10 @@ Config comes from environment variables (`.env.example` documents them all; Comp
 
 ### The two-service split is the point
 
-The API and the frontend are deliberately separate origins, because the course uses that to demonstrate S3 static hosting plus CloudFront in front of an EC2/EB API. Locally that's the `api` and `frontend` containers. Consequences that keep mattering:
+The API and the frontend are deliberately separate origins: the `api` and `frontend` containers. Consequences that keep mattering:
 
 - **CORS is always live.** `CORS_ALLOW_ALL_ORIGINS` is on unless `CORS_ALLOWED_ORIGINS` is set. Don't "simplify" by making the frontend same-origin.
-- **The frontend gets its API base at runtime**, from `window.PIZZA_API_URL` in `frontend/static/js/config.js`. `frontend/docker-entrypoint.sh` regenerates that file on container start from `API_URL` (nginx images run everything in `/docker-entrypoint.d/`). For S3, you edit `config.js` and sync the folder. Never hardcode an API host in `main.js` or a controller.
+- **The frontend gets its API base at runtime**, from `window.PIZZA_API_URL` in `frontend/static/js/config.js`. `frontend/docker-entrypoint.sh` regenerates that file on container start from `API_URL` (nginx images run everything in `/docker-entrypoint.d/`). Never hardcode an API host in `main.js` or a controller.
 - Django serves no app templates. `STATIC_ROOT`/`collectstatic` exist only for the admin and the DRF browsable API.
 
 There used to be a second copy of the frontend under `delivery/static/` and `delivery/templates/`, Django-served and kept in sync by hand. It's gone — `frontend/` is the only copy.
@@ -63,20 +63,11 @@ Serializers are `HyperlinkedModelSerializer`, so **clients POST resource URLs, n
 
 ### Auth
 
-`djangorestframework-jwt` is dead and was replaced by `djangorestframework-simplejwt`. The response shape changed from `{"token": ...}` to `{"access": ..., "refresh": ...}`. `SIMPLE_JWT["AUTH_HEADER_TYPES"]` accepts both `Bearer` (sent by the current frontend) and `JWT` (the legacy prefix), so older course material still works.
+`djangorestframework-jwt` is dead and was replaced by `djangorestframework-simplejwt`. The response shape changed from `{"token": ...}` to `{"access": ..., "refresh": ...}`. `SIMPLE_JWT["AUTH_HEADER_TYPES"]` accepts both `Bearer` (sent by the current frontend) and `JWT` (the legacy prefix), so older clients still work.
 
 Frontend token handling lives in `frontend/static/js/services/auth.js` — the `auth` factory owns sessionStorage, and an `$httpProvider` interceptor attaches the header. Controllers should depend on `auth` rather than touching sessionStorage.
 
 DRF defaults to `IsAuthenticated` globally, so **every** `/api/` endpoint needs a token.
-
-### Deployment assets
-
-- `.ebextensions/django.config` — Elastic Beanstalk on a Python 3.12 / Amazon Linux 2023 platform. Uses the `aws:elasticbeanstalk:environment:proxy:staticfiles` namespace (AL2023 proxies through nginx; the old `container:python:staticfiles` namespace and the `WSGIPassAuthorization On` mod_wsgi workaround are gone). Container commands must `source /var/app/venv/*/bin/activate` first. Env values are `placeholder`.
-- `scripts/install-pizza-time.sh` — AL2023 user-data for the API tier. Clones `cloudacademy/pizza-time` upstream by default, not the local checkout; override with `REPO_URL`/`REPO_BRANCH`.
-- `scripts/pizza-time-cloud-formation.template` — **not yet modernized.** ~700 lines of JSON building VPC/subnets/NACLs/classic ELB/ASG, with logical names derived from specific exported AWS resource IDs (`vpc8d005ee9`, `sgpizzatimeelbsg`). Still references the old MySQL-era setup.
-- `scripts/send_custom_metrics.sh` and `install_custom_monitoring.sh` hardcode `us-west-2` and `pizza.clouda.rocks`.
-
-Keep `README.MD` in sync when changing any of these — it is the course-facing documentation.
 
 ### Still legacy
 
