@@ -1,0 +1,21 @@
+/* Order detail and tracking (plan 3.9). The confirm grid, the tracker panel,
+   the item rows and the total row all come from neon.css; these are the few
+   values the artboard sets on this screen alone. */
+
+/* The confirm headline runs a touch larger than .display elsewhere. */
+.confirm-title { font-size: clamp(34px, 4.6vw, 62px); }
+
+.confirm-eta {
+  margin: 18px 0 0;
+  color: var(--ink-70);
+  font-size: 16px;
+}
+.confirm-eta strong { color: var(--ink); }
+
+/* When the tracker is on top, the detail block below it needs the same
+   breathing room the tracker takes from the header. */
+.order-head--after { margin-top: 40px; }
+
+.total-label { color: var(--ink-65); }
+
+.order-status { margin: 0; }

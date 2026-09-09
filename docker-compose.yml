@@ -18,8 +18,9 @@ services:
     build: .
     restart: unless-stopped
     command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "uv run manage.py migrate --noinput &&
+             uv run manage.py seed_demo &&
+             uv run manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
@@ -35,6 +36,11 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-password}
       DATABASE_HOST: db
       DATABASE_PORT: 5432
+      DELIVERY_FEE: ${DELIVERY_FEE:-5.00}
+      DEMO_USERNAME: ${DEMO_USERNAME:-pizza}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-pizza}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-pizza-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-pizza-admin}
 
   frontend:
     build: ./frontend
@@ -44,9 +50,27 @@ services:
     depends_on:
       - api
     environment:
-      # The browser resolves this, not the container, so it must be an address
-      # reachable from your machine.
-      API_URL: ${API_URL:-http://localhost:8000}
+      # The browser resolves this, not the container. Leave it empty and the
+      # app calls port 8000 on whatever host it was loaded from, which works
+      # from this machine and from a phone on the same network alike. Set it
+      # only when the API lives somewhere else.
+      API_URL: ${API_URL:-}
+
+  # Hot reload without rebuilding the image: docker compose --profile dev up.
+  # It takes the same port as `frontend`, so only one of them runs at a time.
+  # public/config.js already points at localhost:8000, so nothing regenerates
+  # it here.
+  frontend-dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host --port 8080"
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
 
 volumes:
   pgdata:

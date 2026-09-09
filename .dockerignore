@@ -1,0 +1,9 @@
+.git
+.env
+__pycache__/
+*.py[cod]
+.venv/
+staticfiles/
+# The API image never serves the SPA; nginx does, from its own build context.
+frontend/
+docs/

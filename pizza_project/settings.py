@@ -7,6 +7,8 @@ list and docker-compose.yml for the local development values.
 """
 
 import os
+from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +36,11 @@ CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 # CORS_ALLOWED_ORIGINS to lock it down.
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
-CORS_ALLOW_CREDENTIALS = True
+# Credentials are only offered to an explicitly listed origin. The frontend
+# authenticates with a Bearer token, never a cookie, so it does not need them;
+# allowing them while every origin is permitted would let any website read an
+# admin's session-authenticated responses (the browsable API uses session auth).
+CORS_ALLOW_CREDENTIALS = bool(CORS_ALLOWED_ORIGINS)
 
 
 INSTALLED_APPS = [
@@ -59,10 +65,29 @@ REST_FRAMEWORK = {
     ),
 }
 
+# --- Demo data -------------------------------------------------------------
+# The delivery fee the server adds to every non-empty order. Authoritative:
+# the frontend keeps its own copy only for the cart preview.
+DELIVERY_FEE = Decimal(os.environ.get("DELIVERY_FEE", "5.00"))
+
+# Credentials created by the seed_demo management command, which runs on every
+# boot. The customer login is printed on the sign-in screen.
+DEMO_USERNAME = os.environ.get("DEMO_USERNAME", "pizza")
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "pizza")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "pizza-admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "pizza-admin")
+
 SIMPLE_JWT = {
-    # "JWT" is what the original djangorestframework-jwt used and what the
-    # AngularJS interceptor still sends; "Bearer" is simplejwt's default.
+    # "JWT" is what the original djangorestframework-jwt used; "Bearer" is
+    # simplejwt's default and what the React frontend sends.
     "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
+    # A demo session should not log itself out mid-sentence. The frontend
+    # still refreshes once on a 401 before giving up.
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Refuses staff accounts and adds `username` to the response; see
+    # delivery/auth.py.
+    "TOKEN_OBTAIN_SERIALIZER": "delivery.auth.CustomerTokenObtainPairSerializer",
 }
 
 MIDDLEWARE = [

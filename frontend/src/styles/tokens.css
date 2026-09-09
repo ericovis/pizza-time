@@ -1,0 +1,113 @@
+/* Neon Slice design tokens: palette, type, keyframes and the base reset.
+   Swapping this file (plus neon.css) is what it would take to move the app to
+   one of the other design directions. The @font-face rules live in
+   public/fonts/fonts.css so they load before the bundle. */
+
+:root {
+  /* palette */
+  --bg: #1a0b2e;
+  --panel: #241040;
+  --ink: #f6f0ff;
+  --lime: #c6ff3d;
+  --magenta: #f93cf0;
+
+  /* repeated ink alphas from the artboard */
+  --ink-72: rgba(246, 240, 255, 0.72);
+  --ink-70: rgba(246, 240, 255, 0.7);
+  --ink-65: rgba(246, 240, 255, 0.65);
+  --ink-62: rgba(246, 240, 255, 0.62);
+  --ink-60: rgba(246, 240, 255, 0.6);
+  --ink-55: rgba(246, 240, 255, 0.55);
+  --ink-50: rgba(246, 240, 255, 0.5);
+  --ink-45: rgba(246, 240, 255, 0.45);
+  --ink-40: rgba(246, 240, 255, 0.4);
+  --ink-35: rgba(246, 240, 255, 0.35);
+  --ink-30: rgba(246, 240, 255, 0.3);
+  --ink-25: rgba(246, 240, 255, 0.25);
+  --ink-20: rgba(246, 240, 255, 0.2);
+  --ink-12: rgba(246, 240, 255, 0.12);
+  --ink-10: rgba(246, 240, 255, 0.1);
+
+  /* accent alphas */
+  --lime-55: rgba(198, 255, 61, 0.55);
+  --lime-45: rgba(198, 255, 61, 0.45);
+  --lime-40: rgba(198, 255, 61, 0.4);
+  --lime-35: rgba(198, 255, 61, 0.35);
+  --lime-30: rgba(198, 255, 61, 0.3);
+  --lime-25: rgba(198, 255, 61, 0.25);
+  --lime-22: rgba(198, 255, 61, 0.22);
+  --lime-18: rgba(198, 255, 61, 0.18);
+  --lime-16: rgba(198, 255, 61, 0.16);
+  --lime-14: rgba(198, 255, 61, 0.14);
+  --lime-09: rgba(198, 255, 61, 0.09);
+  --magenta-60: rgba(249, 60, 240, 0.6);
+  --magenta-50: rgba(249, 60, 240, 0.5);
+  --magenta-45: rgba(249, 60, 240, 0.45);
+  --magenta-38: rgba(249, 60, 240, 0.38);
+  --magenta-35: rgba(249, 60, 240, 0.35);
+  --magenta-28: rgba(249, 60, 240, 0.28);
+  --magenta-20: rgba(249, 60, 240, 0.2);
+  --magenta-18: rgba(249, 60, 240, 0.18);
+  --magenta-08: rgba(249, 60, 240, 0.08);
+
+  /* type */
+  --font-display: 'Unbounded', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body: 'Rubik', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* geometry */
+  --shell: 1240px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --radius-lg: 24px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
+
+  /* motion */
+  --ease-pop: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+a { color: var(--lime); text-decoration: none; }
+a:hover { color: var(--magenta); }
+
+input, button, select, textarea { font: inherit; color: inherit; }
+input::placeholder { color: var(--ink-35); }
+
+::selection { background: var(--lime); color: var(--bg); }
+
+:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+
+/* ---- keyframes, copied from the artboard ---- */
+@keyframes enter { from { opacity: 0; transform: translateY(18px) scale(.99); } to { opacity: 1; transform: none; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes slowspin { to { transform: rotate(360deg); } }
+@keyframes orbit { to { transform: rotate(-360deg); } }
+@keyframes neonpulse { 0%, 100% { opacity: .5; transform: scale(1); } 50% { opacity: .95; transform: scale(1.04); } }
+@keyframes toastin { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes flicker { 0%, 100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: .4; } 94% { opacity: 1; } 97% { opacity: .6; } 98% { opacity: 1; } }
+
+/* The continuous animations are decorative; the one-shot ones (enter, toastin)
+   are kept short rather than removed so nothing appears without warning. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
