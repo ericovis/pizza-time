@@ -413,8 +413,8 @@ five seconds until the status is Delivered. The old `#/new-order` and
 - **Order**: back link, username and date, status pill, item rows, total
   including delivery, and the tracker when `placed=1` or the order is not
   yet delivered. Not-found state for ids that 404.
-- **About**: the three cards; API base from `apiBase()`, demo login from
-  the constant.
+- **About**: the three cards. No API base or seed-login footer line; the
+  credentials live on the sign-in screen only.
 
 Catalog note: `/api/pizzas/get/` requires a token today, but the design's
 menu and builder are public pages. Make `PizzaViewSet` readable without

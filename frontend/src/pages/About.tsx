@@ -1,4 +1,3 @@
-import { apiBase, DEMO_LOGIN } from '../lib/config'
 import '../styles/pages/about.css'
 
 /** The ABOUT screen: what this app is, and where its API lives. */
@@ -34,9 +33,6 @@ export function About() {
           <p>The API and this frontend are separate containers; the frontend reads its API base URL at start-up from the environment.</p>
         </div>
       </div>
-      <p className="note">
-        API base: {apiBase()} · Seed login: {DEMO_LOGIN.username} / {DEMO_LOGIN.password}
-      </p>
     </main>
   )
 }

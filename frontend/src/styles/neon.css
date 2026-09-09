@@ -324,7 +324,6 @@
 .muted { color: var(--ink-60); font-size: 13px; }
 .muted-strong { color: var(--ink-70); font-size: 15px; text-wrap: pretty; margin: 0; }
 .meta { font-size: 13px; color: var(--ink-60); }
-.note { margin: 24px 0 0; font-size: 13px; color: var(--ink-40); }
 
 .price { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--lime); }
 .price-sm { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--lime); }
