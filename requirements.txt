@@ -1,9 +1,6 @@
-Django==1.9.7
-django-cors-headers==1.1.0
-django-filter==0.13.0
-djangorestframework==3.3.3
-djangorestframework-jwt==1.8.0
-Markdown==2.6.6
-MySQL-python==1.2.5
-PyJWT==1.4.0
-virtualenv==15.0.2
+Django==5.2.17
+djangorestframework==3.18.0
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+psycopg[binary]==3.3.5
+gunicorn==23.0.0

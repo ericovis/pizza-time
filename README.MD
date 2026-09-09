@@ -1,81 +1,90 @@
-Certified SysOps Administrator for AWS
------------------------------
-
-This repository is part of the [SysOps Administrator — Associate Certification for AWS](https://cloudacademy.com/learning-paths/aws-sysops-7/) Learning Path
-
-###Further material
-
-  - [Whitepaper: Overview of security processes](http://d0.awsstatic.com/whitepapers/Security/AWS%20Security%20Whitepaper.pdf)
-  - [Whitepaper: Amazon Virtual Private Cloud Connectivity Options](http://media.amazonwebservices.com/AWS_Amazon_VPC_Connectivity_Options.pdf)
-  - [Whitepaper: Operational checklists for AWS (Preparing for security assessments)](http://media.amazonwebservices.com/AWS_Operational_Checklists.pdf)
-  - [Page: Troubleshooting EC2 connectivity issues](https://aws.amazon.com/premiumsupport/knowledge-center/linux-credentials-error/)  
-  - [Video: How should I connect to my Amazon virtual private cloud?](https://aws.amazon.com/premiumsupport/knowledge-center/connect-vpc/)
-  - [Video: How do I troubleshoot problems connecting to my EC2 Linux instance using SSH?](https://aws.amazon.com/premiumsupport/knowledge-center/ec2-linux-ssh-troubleshooting/)
-  - [Page: General FAQs](https://aws.amazon.com/premiumsupport/knowledge-center/)
-
 Pizza Time!
+===========
+
+A small pizza-ordering demo app — a Django REST Framework API and an AngularJS
+frontend — that runs entirely under Docker Compose.
+
+The API and the frontend are separate services, each in its own container.
+
+A bit of history
+----------------
+
+I originally wrote this app while working at Cloud Academy, as the workload
+for a course I was teaching. Some of its hiccups were built in on purpose:
+they were the bugs I would fix live, step by step, during the lessons. That
+course is long gone. This fork has been cleaned up and modernized, and is now
+just a general-purpose demo app.
+
+Stack: Python 3.12, Django 5.2, Django REST Framework, PostgreSQL, AngularJS 1.5.
+
+Running locally
 ---------------
 
-###Run the dev environment (local)
-
-You need to have Docker and docker compose installed and configured on your computer.
-
-To download/clone the repo and in the project's folder type:
+You need Docker with Compose v2.
 
 ```
-docker-compose build
+docker compose up --build
 ```
 
-That will build the container. Once it's done run the bellow command to start the DB container:
+That starts three containers: `db` (Postgres), `api` (Django, migrations run
+automatically on boot) and `frontend` (nginx).
+
+Load the seed data the first time:
 
 ```
-docker-compose up db -d
+docker compose exec api python manage.py loaddata initial_data
 ```
 
-Now run these commands to configure the database and load the initial data:
+Then open:
+
+- Frontend — http://localhost:8080
+- API (browsable) — http://localhost:8000/api/
+- Admin — http://localhost:8000/admin/
+
+Seed login: `jklimber` / `start123`.
+
+Configuration lives in environment variables; copy `.env.example` to `.env` to
+override any of them. Compose picks `.env` up automatically.
+
+Tests
+-----
 
 ```
-docker-compose run web python manage.py migrate
-docker-compose run web python manage.py loaddata initial_data
+docker compose run --rm api python manage.py test
+docker compose run --rm api python manage.py test delivery.tests.OrderTests
 ```
 
-Now you are ready to run the app, to start the web server use this command:
+The API
+-------
+
+Every endpoint requires authentication. `POST /api/auth/` with a username and
+password returns a simplejwt `access`/`refresh` pair; send the access token as
+`Authorization: Bearer <token>` (the older `JWT <token>` prefix is also
+accepted).
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/auth/` | POST | obtain an access/refresh token pair |
+| `/api/auth/refresh/` | POST | exchange a refresh token for a new access token |
+| `/api/pizzas/get/` | GET, POST | the pizza catalog |
+| `/api/orders/get/` | GET | orders, rendered with pizza and user names |
+| `/api/orders/new/` | POST | create an order; pizzas are posted as hyperlinks |
+| `/api/users/` | GET | read-only user list |
+
+Orders are always created for the authenticated caller — a `user` in the
+request body is ignored.
+
+The frontend
+------------
+
+One copy of the app, in [frontend/](/frontend), served by nginx. It reads its
+API base URL from `window.PIZZA_API_URL` in
+[static/js/config.js](/frontend/static/js/config.js), which the container
+rewrites on start-up from the `API_URL` environment variable:
 
 ```
-docker-compose up
+API_URL=https://api.example.com docker compose up frontend
 ```
 
-###Deploying to Elastic Beanstalk
-
-Before starting you should have the AWS CLI and the EB CLI installed and configured in your machine:
-
-```
-pip install awscli
-pip install awsebcli
-aws configure
-```
-
-
-- Create the RDS database
-- Create a new application on Elastic Beanstalk (EB)
-- Create a new environment inside the EB application, make sure that you will use Python 2.7
-- Download this repo
-- Change the Environment Variables in the [django.config](/.ebextensions/django.config) file
-- Open a terminal inside the the repo's folder
-- Type the bellow command to configure the EB environment in your repo and follow the wizard
-```
-eb init
-```
-- Type the bellow commands to stage your changes and deploy the app to EB
-```
-git add .
-eb deploy --staged
-```
-
-###Deploying API instances
-
-Take a look at the [install-pizza-time.sh](/scripts/install-pizza-time.sh) script an make the needed changes in the Environment Variables to point to your database instance. Then use the script as the User Data script in your instances or Launch configuration.
-
-###Angular app
-
-The Angular files are available at the [Frontend](/frontend) folder, make sure that you will change the variable called "$rootScope.APIURL" in the [main.js](/frontend/static/js/main.js) file to point to your API endpoint.
+The API needs to allow the frontend's origin — `CORS_ALLOWED_ORIGINS` does
+that (it defaults to allowing everything).

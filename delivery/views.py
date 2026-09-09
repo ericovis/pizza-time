@@ -1,46 +1,41 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from rest_framework import viewsets
-from delivery.serializers import *
-from delivery.models import Pizza, Order
-from django.shortcuts import render, render_to_response
-from django.template import RequestContext
 
+from delivery.models import Order, Pizza
+from delivery.serializers import (
+    GetOrderSerializer,
+    NewOrderSerializer,
+    PizzaSerializer,
+    UserSerializer,
+)
 
-def index(request):
-    return render(request, 'index.html')
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = User.objects.all().order_by('-date_joined')
+    """Read-only user list, used to resolve hyperlinked user references."""
+
+    queryset = User.objects.all().order_by("-date_joined")
     serializer_class = UserSerializer
 
 
 class PizzaViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Pizza.objects.all()
+    """The pizza catalog."""
+
+    queryset = Pizza.objects.all().order_by("name")
     serializer_class = PizzaSerializer
 
-class OrderViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Order.objects.all()
-    serializer_class = NewOrderSerializer
 
 class GetOrderViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Order.objects.all()
+    """Orders in display form. Registered at /api/orders/get/."""
+
+    queryset = Order.objects.all().order_by("-id")
     serializer_class = GetOrderSerializer
 
+
 class NewOrderViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Order.objects.all()
+    """Order creation. Registered at /api/orders/new/."""
+
+    queryset = Order.objects.all().order_by("-id")
     serializer_class = NewOrderSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

@@ -1,13 +1,8 @@
-from django.conf.urls import url, include
 from django.contrib import admin
-from delivery import views
-import rest_framework
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
+from django.urls import include, path
+
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^api/', include('delivery.urls')),
-    url(r'^admin/', admin.site.urls),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    # url(r'^.*$', views.index, name='index'),
+    path("api/", include("delivery.urls")),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]

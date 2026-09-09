@@ -1,8 +1,14 @@
-FROM python:2.7
-ENV PYTHONUNBUFFERED 1
-RUN mkdir /code
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
 WORKDIR /code
-ADD requirements.txt /code/
-RUN apt-get update ; apt-get install -y python-mysqldb build-essential
-RUN pip install -r requirements.txt
-ADD . /code/
+
+COPY requirements.txt /code/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /code/
+
+EXPOSE 8000
+CMD ["gunicorn", "pizza_project.wsgi:application", "--bind", "0.0.0.0:8000"]

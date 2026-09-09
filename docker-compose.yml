@@ -1,25 +1,52 @@
-version: '2'
 services:
   db:
-    image: mysql:5.7
-    restart: always
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: pizza
-  web:
+      POSTGRES_DB: ${DATABASE_NAME:-pizza}
+      POSTGRES_USER: ${DATABASE_USER:-pizza}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-pizza} -d ${DATABASE_NAME:-pizza}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
     build: .
-    depends_on:
-      - db
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      DATABASE_NAME: pizza
-      DATABASE_USER: root
-      DATABASE_PASSWORD: password
+      DEBUG: ${DEBUG:-true}
+      SECRET_KEY: ${SECRET_KEY:-dev-only-insecure-secret-key-change-me}
+      DATABASE_NAME: ${DATABASE_NAME:-pizza}
+      DATABASE_USER: ${DATABASE_USER:-pizza}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-password}
       DATABASE_HOST: db
-      DATABASE_PORT: 3306
+      DATABASE_PORT: 5432
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    environment:
+      # The browser resolves this, not the container, so it must be an address
+      # reachable from your machine.
+      API_URL: ${API_URL:-http://localhost:8000}
+
+volumes:
+  pgdata:
