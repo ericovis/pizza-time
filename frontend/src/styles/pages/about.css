@@ -1,0 +1,7 @@
+/* About page (plan 3.9). Everything else it needs lives in neon.css.
+   Two details the shared classes do not cover: the design's heading carries a
+   bottom margin that .display does not, and its magenta word has no neon glow
+   (so .accent-magenta, which does, would be wrong here). */
+
+.about-heading { margin-bottom: 24px; }
+.about-accent { color: var(--magenta); }

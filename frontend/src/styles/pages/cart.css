@@ -1,0 +1,24 @@
+/* Cart page. Everything structural already lives in neon.css (.empty-state,
+   .row, .qty, .summary-panel, …); these are the few numbers the artboard uses
+   only on this screen. */
+
+.cart-title { margin-bottom: 28px; }
+.cart-title span { color: var(--magenta); }
+
+/* The artboard's item list sits at gap 12, one notch above .stack. */
+.cart-items { display: flex; flex-direction: column; gap: 12px; }
+
+/* Nine of one pizza is the server's ceiling, so the stepper stops there. */
+.qty-btn:disabled { opacity: .35; cursor: not-allowed; }
+.qty-btn:disabled:hover { background: transparent; color: var(--ink); }
+
+.cart-place { margin-top: 10px; }
+.cart-note { margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--ink-60); }
+.cart-error { margin: 6px 0 0; text-align: center; }
+
+@media (max-width: 560px) {
+  /* Art, name, stepper, price no longer fit on one line: the price drops
+     under the stepper and keeps its right edge. */
+  .cart-items .row { flex-wrap: wrap; row-gap: 10px; }
+  .cart-items .item-price { flex: 1; text-align: right; }
+}

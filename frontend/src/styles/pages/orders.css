@@ -1,0 +1,12 @@
+/* Orders list (plan 3.9). The row itself lives in neon.css; these are the
+   three things the shared classes do not cover. */
+
+/* The artboard's heading carries a bottom margin that .display does not. */
+.orders-heading { margin-bottom: 28px; }
+
+/* A <button> may only hold phrasing content, so the row's two text lines are
+   spans; the design drew them as divs. */
+.order-row .order-user,
+.order-row .order-meta { display: block; }
+
+.orders-status { margin: 0; }

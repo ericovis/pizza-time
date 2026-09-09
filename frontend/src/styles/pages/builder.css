@@ -1,0 +1,34 @@
+/* Builder-only rules. Everything shared lives in styles/neon.css; these are the
+   handful of declarations the design's builder artboard has that no shared
+   class covers. */
+
+/* .page--wide zeroes its top padding for the menu hero; the builder starts
+   with the same top padding as every other page. */
+.page.page--builder { padding-top: clamp(28px, 4vw, 56px); padding-bottom: 120px; }
+
+.builder-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+/* The headline's second word is flat magenta in the design, no glow. */
+.builder-accent { color: var(--magenta); }
+.builder-lede { max-width: 40ch; }
+
+.palette-head { gap: 12px; margin-bottom: 14px; }
+.palette-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: -.01em;
+}
+.palette-brush { font-size: 13px; color: var(--ink-60); }
+.palette-brush strong { color: var(--lime); font-weight: 600; }
+.palette-note { margin: 0; }
+
+.builder-breakdown { font-size: 14px; color: var(--ink-70); text-wrap: pretty; }

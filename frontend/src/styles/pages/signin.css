@@ -1,0 +1,22 @@
+/* Sign-in card. The form itself is .form-card / .field from neon.css; the
+   artboard pins this heading at 34px instead of the fluid .display size. */
+
+.signin-kicker { margin: 0; }
+
+.signin-title {
+  margin: 0 0 8px;
+  font-size: 34px;
+  line-height: 1;
+}
+.signin-title span { color: var(--lime); }
+
+/* Expiry is a notice rather than a field error, so it reads quieter. */
+.signin-notice {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-70);
+  border-left: 2px solid var(--magenta);
+  padding-left: 10px;
+}
+
+.signin-submit { margin-top: 6px; }

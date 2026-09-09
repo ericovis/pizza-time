@@ -1,0 +1,39 @@
+/* Menu page extras: the anchor offset for "See the menu", the dashed card art
+   width, and the catalog's loading and error states, which the artboard has no
+   equivalent for. Everything else comes from neon.css. */
+
+/* The header is sticky, so the scrolled-to section needs room above it. */
+#menu { scroll-margin-top: 96px; }
+
+.menu-own-pizza { width: 100%; }
+
+/* Error panel and any other full-width row inside the catalog grid. */
+.menu-wide { grid-column: 1 / -1; }
+.menu-error-actions { margin-top: 16px; }
+
+/* Loading placeholders: the card shell with pulsing blocks where art and copy
+   will land, so the grid does not jump when the catalog arrives. */
+.menu-skeleton { pointer-events: none; }
+.menu-skeleton:hover { border-color: var(--lime-16); box-shadow: none; }
+.menu-skeleton-art {
+  width: 76%;
+  margin: 0 auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ink-10);
+  animation: menu-pulse 1.4s ease-in-out infinite;
+}
+.menu-skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--ink-10);
+  animation: menu-pulse 1.4s ease-in-out infinite;
+}
+.menu-skeleton-line--title { height: 18px; width: 62%; }
+.menu-skeleton-line--price { width: 72px; height: 16px; }
+.menu-skeleton-line--btn { width: 62px; height: 34px; border-radius: 10px; }
+
+@keyframes menu-pulse {
+  0%, 100% { opacity: .45; }
+  50% { opacity: .9; }
+}
