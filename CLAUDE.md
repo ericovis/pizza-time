@@ -51,6 +51,7 @@ Tests: `delivery/tests/` (a package: `test_auth`, `test_pizzas`, `test_orders`, 
 The API and the frontend are deliberately separate origins: the `api` and `frontend` containers. Consequences that keep mattering:
 
 - **CORS is always live.** `CORS_ALLOW_ALL_ORIGINS` is on unless `CORS_ALLOWED_ORIGINS` is set. Don't "simplify" by making the frontend same-origin.
+  `CORS_ALLOW_CREDENTIALS` follows `CORS_ALLOWED_ORIGINS`: credentials are only offered to an explicitly listed origin. The frontend sends a Bearer token, never a cookie, so it never needs them — and the browsable API and admin do use session cookies, which is exactly why they must not be reachable from any origin.
 - **The frontend gets its API base at runtime**, from `window.PIZZA_API_URL` in `frontend/public/config.js`, loaded by a plain `<script>` in `index.html` before the bundle. `frontend/docker-entrypoint.sh` regenerates that file on container start from `API_URL` (nginx images run everything in `/docker-entrypoint.d/`), and nginx serves it `no-store`. Never use `import.meta.env` for the API URL — Vite would bake it into the bundle and break "one image, any API URL". Read it through `apiBase()` in `src/lib/config.ts`.
 - Django serves no app templates. `STATIC_ROOT`/`collectstatic` exist only for the admin and the DRF browsable API.
 

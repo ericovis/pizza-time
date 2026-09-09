@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 
 import PizzaArt from '../components/PizzaArt'
+import { CART_FULL_MESSAGE } from '../lib/config'
 import { customKey, useCart } from '../state/cart'
 import { useCatalog } from '../state/catalog'
 import { useToast } from '../state/toast'
@@ -193,7 +194,7 @@ export function Builder() {
     }
     const key = customKey(slices)
     if (isFull && !items.some((it) => it.key === key)) {
-      show('Your order is full — 20 pizzas max')
+      show(CART_FULL_MESSAGE)
       return
     }
     const name = flavorCount === 1

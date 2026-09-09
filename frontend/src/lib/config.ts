@@ -31,6 +31,10 @@ export const ETA_LABELS = ['~35 min', '~25 min', '~10 min', 'Delivered'] as cons
 /** The server refuses an order with more than this many item rows. */
 export const MAX_ORDER_ITEMS = 20
 
+/** Shown when a 21st distinct pizza is added. One string, so the menu and the
+ *  builder say the same thing. */
+export const CART_FULL_MESSAGE = `Your order is full · ${MAX_ORDER_ITEMS} pizzas max`
+
 /** The server refuses a quantity outside this range. */
 export const MIN_QUANTITY = 1
 export const MAX_QUANTITY = 9

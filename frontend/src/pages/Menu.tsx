@@ -7,6 +7,7 @@ import { useCatalog } from '../state/catalog'
 import { useToast } from '../state/toast'
 import { bump, flyToCart, tiltLeave, tiltMove } from '../lib/fx'
 import { swatchFor } from '../lib/pizza-art'
+import { CART_FULL_MESSAGE } from '../lib/config'
 import { DELIVERY_FEE, money, toNumber } from '../lib/pricing'
 import type { Pizza } from '../api/pizzas'
 
@@ -35,7 +36,7 @@ export function Menu() {
   function add(pizza: Pizza, event: MouseEvent<HTMLButtonElement>) {
     const known = items.some((item) => item.key === menuKey(pizza.id))
     if (isFull && !known) {
-      show('Your order is full · 20 pizzas max')
+      show(CART_FULL_MESSAGE)
       return
     }
     addMenu(pizza)

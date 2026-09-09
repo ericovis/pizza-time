@@ -91,8 +91,8 @@ The suite lives in `delivery/tests/` and covers auth (including the staff
 refusal), the public menu and its staff-only writes, order creation and
 pricing, order ownership, and the seed command.
 
-The frontend has Vitest unit tests for the cart reducer, pricing and date
-formatting:
+The frontend has Vitest tests for the cart reducer, pricing, date formatting,
+the API client's 401-refresh path and each screen:
 
 ```
 docker compose run --rm frontend-dev sh -c "npm install && npm test"
@@ -220,7 +220,10 @@ The image is multi-stage: `node:22-alpine` runs `npm ci && npm run build`, and
 inside Docker.
 
 The API needs to allow the frontend's origin — `CORS_ALLOWED_ORIGINS` does
-that (it defaults to allowing everything).
+that (it defaults to allowing everything). Credentials are only offered to an
+origin on that list: the frontend authenticates with a Bearer token, while the
+browsable API and the admin use session cookies that no other origin should be
+able to ride.
 
 Design
 ------

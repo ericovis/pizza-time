@@ -4,6 +4,6 @@ __pycache__/
 *.py[cod]
 .venv/
 staticfiles/
-frontend/node_modules/
-frontend/dist/
+# The API image never serves the SPA; nginx does, from its own build context.
+frontend/
 docs/

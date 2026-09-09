@@ -195,6 +195,11 @@ class Command(BaseCommand):
             is_staff=True,
             is_superuser=True,
         )
+        # An old volume can already hold an account under ADMIN_USERNAME that is
+        # not staff (the retired fixture called its superuser "root"). Leaving it
+        # alone would give the demo an "admin" who cannot open /admin/ and who
+        # *can* obtain a token, which is exactly what the staff rule forbids.
+        self.ensure_staff(users["admin"])
         return users
 
     def get_or_create_user(self, username, password, **defaults):
@@ -206,6 +211,23 @@ class Command(BaseCommand):
         else:
             self.skipped["users"] += 1
         return user
+
+    def ensure_staff(self, user):
+        missing = [
+            field
+            for field in ("is_staff", "is_superuser")
+            if not getattr(user, field)
+        ]
+        if not missing:
+            return
+        for field in missing:
+            setattr(user, field, True)
+        user.save(update_fields=missing)
+        self.stdout.write(
+            self.style.WARNING(
+                "seed_demo: promoted the existing %s account to staff." % user.username
+            )
+        )
 
     # -- order history ------------------------------------------------------
 

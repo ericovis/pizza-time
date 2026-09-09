@@ -36,7 +36,11 @@ CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 # CORS_ALLOWED_ORIGINS to lock it down.
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
-CORS_ALLOW_CREDENTIALS = True
+# Credentials are only offered to an explicitly listed origin. The frontend
+# authenticates with a Bearer token, never a cookie, so it does not need them;
+# allowing them while every origin is permitted would let any website read an
+# admin's session-authenticated responses (the browsable API uses session auth).
+CORS_ALLOW_CREDENTIALS = bool(CORS_ALLOWED_ORIGINS)
 
 
 INSTALLED_APPS = [

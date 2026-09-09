@@ -94,3 +94,22 @@ class SeedCommandTests(APITestCase):
             OrderItem.objects.count(),
         )
         self.assertEqual(before, after)
+
+    def test_an_existing_account_under_the_admin_name_is_promoted(self):
+        """An old volume can hold a plain customer called `admin`.
+
+        Leaving it alone would hand the demo a staff account that cannot open
+        /admin/ and that *can* obtain a token, which is exactly what the staff
+        rule forbids.
+        """
+        User.objects.filter(username="admin").update(is_staff=False, is_superuser=False)
+
+        call_command("seed_demo", stdout=StringIO())
+
+        admin = User.objects.get(username="admin")
+        self.assertTrue(admin.is_staff)
+        self.assertTrue(admin.is_superuser)
+        response = self.client.post(
+            "/api/auth/", {"username": "admin", "password": "admin123"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
