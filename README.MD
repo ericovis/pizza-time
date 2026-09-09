@@ -6,6 +6,15 @@ frontend — that runs entirely under Docker Compose.
 
 The API and the frontend are separate services, each in its own container.
 
+A bit of history
+----------------
+
+I originally wrote this app while working at Cloud Academy, as the workload
+for a course I was teaching. Some of its hiccups were built in on purpose:
+they were the bugs I would fix live, step by step, during the lessons. That
+course is long gone. This fork has been cleaned up and modernized, and is now
+just a general-purpose demo app.
+
 Stack: Python 3.12, Django 5.2, Django REST Framework, PostgreSQL, AngularJS 1.5.
 
 Running locally
