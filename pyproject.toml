@@ -1,0 +1,16 @@
+[project]
+name = "pizza-time"
+version = "0.1.0"
+description = "Demo pizza-ordering API: Django REST Framework on PostgreSQL."
+requires-python = ">=3.12"
+dependencies = [
+    "Django==5.2.17",
+    "djangorestframework==3.18.0",
+    "djangorestframework-simplejwt==5.5.1",
+    "django-cors-headers==4.9.0",
+    "psycopg[binary]==3.3.5",
+    "gunicorn==23.0.0",
+]
+
+[tool.uv]
+package = false
