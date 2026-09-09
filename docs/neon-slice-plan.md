@@ -192,11 +192,11 @@ Prints what it created and what it skipped.
 
 - Eleven pizzas with slug, price, toppings and description copied from
   `pizza-app.js` (`Pepperoni` at 12.23 is the new one).
-- Users: `jklimber / start123` (the demo customer), `kimberly` and `carlos`
-  (customers whose orders must never appear for jklimber), and `admin /
-  admin123` as staff superuser. Passwords and usernames come from settings
+- Users: `pizza / pizza` (the demo customer), `kimberly` and `carlos`
+  (customers whose orders must never appear for pizza), and `pizza-admin /
+  pizza-admin` as staff superuser. Passwords and usernames come from settings
   with these defaults, so `.env` can change them.
-- Orders for jklimber, created only if jklimber has none, with `created_at`
+- Orders for pizza, created only if pizza has none, with `created_at`
   set relative to now:
   - 9 days ago, Delivered: Capricciosa, Vegetarian.
   - 4 days ago, Delivered: a custom half Pepperoni / half Funghi and one
@@ -400,8 +400,8 @@ five seconds until the status is Delivered. The old `#/new-order` and
   rows with art, name, detail, quantity stepper, line total; summary with
   pizzas, delivery, total; "Place the order". Signed out, it navigates to
   `/signin?next=/cart&place=1` and shows "You'll sign in on the next step."
-- **SignIn**: the card from the design; the line `Demo login: jklimber /
-  start123` comes from a `DEMO_LOGIN` constant in `lib/pricing.ts` (rename
+- **SignIn**: the card from the design; the line `Demo login: pizza /
+  pizza` comes from a `DEMO_LOGIN` constant in `lib/pricing.ts` (rename
   to `lib/config.ts`); the error line shows the API's message; the button
   reads "Sign in & place order · $total" when `place=1` and the cart is
   non-empty, otherwise "Sign in". On success with `place=1` it posts the
@@ -481,7 +481,7 @@ the same PR for that reason.
    succeed; `seed_demo` twice is a no-op the second time; admin shows
    items inline.
 3. **Serializers, views, permissions, auth** (2.3 to 2.5), with the tests
-   from section 4. Verify: full suite green; `curl` as jklimber sees four
+   from section 4. Verify: full suite green; `curl` as pizza sees four
    orders, as kimberly sees one, admin login at `/api/auth/` is refused.
 4. **Frontend foundation** (3.1 to 3.8): Vite project, Docker stages,
    runtime config, tokens and component CSS, fonts, pizza-art, API client,
@@ -497,12 +497,12 @@ Manual checklist before merging:
 
 - Fresh `docker compose down -v && docker compose up --build` reaches the
   menu at `:8080` with eleven cards and no manual seed step.
-- Sign in as `jklimber / start123` from the sign-in screen; the credentials
+- Sign in as `pizza / pizza` from the sign-in screen; the credentials
   are printed on that screen.
 - Orders shows exactly four orders with dates relative to today.
-- Sign in as `kimberly / start123`; Orders shows one order, and opening
-  `#/orders/<one of jklimber's ids>` shows a not-found state.
-- Sign in as `admin / admin123` on the frontend; the form shows the staff
+- Sign in as `kimberly / pizza`; Orders shows one order, and opening
+  `#/orders/<one of pizza's ids>` shows a not-found state.
+- Sign in as `pizza-admin / pizza-admin` on the frontend; the form shows the staff
   message and nothing is stored. The same credentials work at `/admin/`.
 - Build a four-flavor pizza, add it, add a menu pizza with quantity 2,
   place the order while signed out; sign in on the next screen and land on

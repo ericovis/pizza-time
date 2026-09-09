@@ -178,7 +178,7 @@ class Command(BaseCommand):
     def seed_users(self):
         users = {}
         customers = [
-            (settings.DEMO_USERNAME, "Jane", "Klimber"),
+            (settings.DEMO_USERNAME, "Pizza", "Time"),
             ("kimberly", "Kimberly", "Oaks"),
             ("carlos", "Carlos", "Reis"),
         ]

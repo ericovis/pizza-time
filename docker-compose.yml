@@ -37,10 +37,10 @@ services:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
       DELIVERY_FEE: ${DELIVERY_FEE:-5.00}
-      DEMO_USERNAME: ${DEMO_USERNAME:-jklimber}
-      DEMO_PASSWORD: ${DEMO_PASSWORD:-start123}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      DEMO_USERNAME: ${DEMO_USERNAME:-pizza}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-pizza}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-pizza-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-pizza-admin}
 
   frontend:
     build: ./frontend

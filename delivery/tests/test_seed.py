@@ -27,12 +27,12 @@ class SeedCommandTests(APITestCase):
 
     def test_demo_login_works(self):
         response = self.client.post(
-            "/api/auth/", {"username": "jklimber", "password": "start123"}
+            "/api/auth/", {"username": "pizza", "password": "pizza"}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_demo_user_has_four_orders(self):
-        demo = User.objects.get(username="jklimber")
+        demo = User.objects.get(username="pizza")
         self.assertEqual(Order.objects.filter(user=demo).count(), 4)
         self.assertEqual(
             Order.objects.filter(user=demo).first().status,
@@ -40,10 +40,10 @@ class SeedCommandTests(APITestCase):
         )
 
     def test_demo_user_only_sees_their_own_orders(self):
-        self.client.force_authenticate(user=User.objects.get(username="jklimber"))
+        self.client.force_authenticate(user=User.objects.get(username="pizza"))
         response = self.client.get("/api/orders/get/")
         self.assertEqual(len(response.data), 4)
-        self.assertEqual({o["user"] for o in response.data}, {"jklimber"})
+        self.assertEqual({o["user"] for o in response.data}, {"pizza"})
 
     def test_other_customers_have_their_own_orders(self):
         for username in ("kimberly", "carlos"):
@@ -53,19 +53,19 @@ class SeedCommandTests(APITestCase):
                 )
 
     def test_staff_user_is_created_and_cannot_use_the_frontend(self):
-        admin = User.objects.get(username="admin")
+        admin = User.objects.get(username="pizza-admin")
         self.assertTrue(admin.is_staff)
         self.assertTrue(admin.is_superuser)
 
         response = self.client.post(
-            "/api/auth/", {"username": "admin", "password": "admin123"}
+            "/api/auth/", {"username": "pizza-admin", "password": "pizza-admin"}
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(str(response.data["detail"]), STAFF_REFUSED)
 
     def test_totals_include_the_delivery_fee(self):
         # 9 days ago: Capricciosa 11.00 + Vegetarian 13.23 + 5.00 delivery.
-        oldest = Order.objects.filter(user__username="jklimber").last()
+        oldest = Order.objects.filter(user__username="pizza").last()
         self.assertEqual(oldest.total, Decimal("29.23"))
 
     def test_every_seeded_total_matches_a_recompute(self):
@@ -96,20 +96,20 @@ class SeedCommandTests(APITestCase):
         self.assertEqual(before, after)
 
     def test_an_existing_account_under_the_admin_name_is_promoted(self):
-        """An old volume can hold a plain customer called `admin`.
+        """An old volume can hold a plain customer called `pizza-admin`.
 
         Leaving it alone would hand the demo a staff account that cannot open
         /admin/ and that *can* obtain a token, which is exactly what the staff
         rule forbids.
         """
-        User.objects.filter(username="admin").update(is_staff=False, is_superuser=False)
+        User.objects.filter(username="pizza-admin").update(is_staff=False, is_superuser=False)
 
         call_command("seed_demo", stdout=StringIO())
 
-        admin = User.objects.get(username="admin")
+        admin = User.objects.get(username="pizza-admin")
         self.assertTrue(admin.is_staff)
         self.assertTrue(admin.is_superuser)
         response = self.client.post(
-            "/api/auth/", {"username": "admin", "password": "admin123"}
+            "/api/auth/", {"username": "pizza-admin", "password": "pizza-admin"}
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

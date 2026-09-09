@@ -11,10 +11,10 @@ class OrderTestCase(APITestCase):
     """Shared catalog and cast for the order tests."""
 
     def setUp(self):
-        self.user = User.objects.create_user("jklimber", password="start123")
-        self.other = User.objects.create_user("kimberly", password="start123")
+        self.user = User.objects.create_user("pizza", password="pizza")
+        self.other = User.objects.create_user("kimberly", password="pizza")
         self.staff = User.objects.create_user(
-            "admin", password="admin123", is_staff=True
+            "pizza-admin", password="pizza-admin", is_staff=True
         )
         self.margherita = Pizza.objects.create(
             name="Margherita", slug="margherita", price=Decimal("12.50")
@@ -152,7 +152,7 @@ class OrderCreateTests(OrderTestCase):
                 "url",
             },
         )
-        self.assertEqual(response.data["user"], "jklimber")
+        self.assertEqual(response.data["user"], "pizza")
         self.assertEqual(response.data["status"], Order.Status.ORDERED)
         self.assertEqual(response.data["delivery_fee"], "5.00")
         self.assertEqual(response.data["total"], "30.00")

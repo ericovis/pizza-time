@@ -20,7 +20,7 @@ const CHEESE = {
 
 const delivered: Order = {
   id: 3,
-  user: 'jklimber',
+  user: 'pizza',
   status: 'Delivered',
   status_label: 'Delivered',
   created_at: '2026-09-08T18:41:00Z',
@@ -49,7 +49,7 @@ function Location() {
 
 function renderOrders(orders: Order[]) {
   stubFetch(orders)
-  saveSession({ access: 'a', refresh: 'r', username: 'jklimber' })
+  saveSession({ access: 'a', refresh: 'r', username: 'pizza' })
   return render(
     <MemoryRouter initialEntries={['/orders']}>
       <AuthProvider>
@@ -77,7 +77,7 @@ describe('<Orders>', () => {
     renderOrders([live, delivered])
     expect(screen.getByText('High scores')).toBeTruthy()
     await screen.findByText('#4')
-    expect(screen.getAllByText('jklimber')).toHaveLength(2)
+    expect(screen.getAllByText('pizza')).toHaveLength(2)
     expect(screen.getAllByText(/2 pizzas ·/)).toHaveLength(2)
     expect(screen.getByText('$18.23')).toBeTruthy()
     expect(screen.getByText('Out for delivery')).toBeTruthy()

@@ -100,7 +100,7 @@ export function SignIn() {
             value={username}
             onChange={(e) => { setUsername(e.target.value); setError('') }}
             autoComplete="username"
-            placeholder="jklimber"
+            placeholder="pizza"
             autoCapitalize="none"
             spellCheck={false}
           />

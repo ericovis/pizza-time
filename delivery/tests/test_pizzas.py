@@ -11,9 +11,9 @@ class PizzaTests(APITestCase):
     """The catalog is public to read and staff-only to change."""
 
     def setUp(self):
-        self.customer = User.objects.create_user("jklimber", password="start123")
+        self.customer = User.objects.create_user("pizza", password="pizza")
         self.staff = User.objects.create_user(
-            "admin", password="admin123", is_staff=True
+            "pizza-admin", password="pizza-admin", is_staff=True
         )
         self.margherita = Pizza.objects.create(
             name="Margherita", slug="margherita", price=Decimal("12.50")

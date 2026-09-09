@@ -72,10 +72,10 @@ DELIVERY_FEE = Decimal(os.environ.get("DELIVERY_FEE", "5.00"))
 
 # Credentials created by the seed_demo management command, which runs on every
 # boot. The customer login is printed on the sign-in screen.
-DEMO_USERNAME = os.environ.get("DEMO_USERNAME", "jklimber")
-DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "start123")
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+DEMO_USERNAME = os.environ.get("DEMO_USERNAME", "pizza")
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "pizza")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "pizza-admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "pizza-admin")
 
 SIMPLE_JWT = {
     # "JWT" is what the original djangorestframework-jwt used; "Bearer" is

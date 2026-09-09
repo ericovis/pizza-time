@@ -43,10 +43,10 @@ function stubFetch(options: { auth?: () => Response; order?: () => Response } = 
     const url = String(input)
     if (url.includes('/pizzas/get/')) return json([CHEESE])
     if (url.includes('/auth/')) {
-      return options.auth ? options.auth() : json({ access: 'a', refresh: 'r', username: 'jklimber', is_staff: false })
+      return options.auth ? options.auth() : json({ access: 'a', refresh: 'r', username: 'pizza', is_staff: false })
     }
     if (url.includes('/orders/new/')) {
-      return options.order ? options.order() : json({ id: 7, user: 'jklimber', items: [], total: '16.23' }, 201)
+      return options.order ? options.order() : json({ id: 7, user: 'pizza', items: [], total: '16.23' }, 201)
     }
     return json({ detail: 'not stubbed' }, 404)
   })
@@ -97,7 +97,7 @@ describe('<SignIn>', () => {
     seedCart([cheeseRow])
     renderSignIn('/signin?next=/cart&place=1')
     expect(screen.getByText('Sign in & place order · $16.23')).toBeTruthy()
-    expect(screen.getByText('Demo login: jklimber / start123')).toBeTruthy()
+    expect(screen.getByText('Demo login: pizza / pizza')).toBeTruthy()
   })
 
   it('explains an expired session', () => {
@@ -117,8 +117,8 @@ describe('<SignIn>', () => {
   it('shows the API error verbatim, staff refusal included', async () => {
     stubFetch({ auth: () => json({ detail: 'Staff accounts sign in at /admin/.' }, 401) })
     renderSignIn('/signin')
-    fireEvent.change(screen.getByPlaceholderText('jklimber'), { target: { value: 'admin' } })
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'admin123' } })
+    fireEvent.change(screen.getByPlaceholderText('pizza'), { target: { value: 'admin' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'pizza-admin' } })
     fireEvent.click(screen.getByText('Sign in'))
     await waitFor(() => {
       expect(screen.getByText('Staff accounts sign in at /admin/.')).toBeTruthy()
@@ -129,8 +129,8 @@ describe('<SignIn>', () => {
     seedCart([cheeseRow])
     const fetchMock = stubFetch()
     renderSignIn('/signin?next=/cart&place=1')
-    fireEvent.change(screen.getByPlaceholderText('jklimber'), { target: { value: 'jklimber' } })
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'start123' } })
+    fireEvent.change(screen.getByPlaceholderText('pizza'), { target: { value: 'pizza' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'pizza' } })
     fireEvent.click(screen.getByText('Sign in & place order · $16.23'))
 
     await waitFor(() => {
@@ -147,8 +147,8 @@ describe('<SignIn>', () => {
   it('follows next when there is nothing to place', async () => {
     stubFetch()
     renderSignIn('/signin?next=/cart')
-    fireEvent.change(screen.getByPlaceholderText('jklimber'), { target: { value: 'jklimber' } })
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'start123' } })
+    fireEvent.change(screen.getByPlaceholderText('pizza'), { target: { value: 'pizza' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'pizza' } })
     fireEvent.click(screen.getByText('Sign in'))
     await waitFor(() => {
       expect(screen.getByTestId('loc').textContent).toBe('/cart')

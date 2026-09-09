@@ -10,7 +10,7 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 }
 
-const SESSION = { access: 'old-access', refresh: 'a-refresh', username: 'jklimber' }
+const SESSION = { access: 'old-access', refresh: 'a-refresh', username: 'pizza' }
 
 function authHeader(call: [RequestInfo | URL, RequestInit | undefined]): string | undefined {
   return (call[1]?.headers as Record<string, string> | undefined)?.Authorization

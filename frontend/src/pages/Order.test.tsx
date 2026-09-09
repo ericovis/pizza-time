@@ -20,7 +20,7 @@ const CHEESE = {
 
 const order: Order = {
   id: 4,
-  user: 'jklimber',
+  user: 'pizza',
   status: 'Out for delivery',
   status_label: 'Out for delivery',
   created_at: '2026-09-09T14:33:23Z',
@@ -53,7 +53,7 @@ function stubFetch() {
 
 function renderOrder(path = '/orders/4') {
   stubFetch()
-  saveSession({ access: 'a', refresh: 'r', username: 'jklimber' })
+  saveSession({ access: 'a', refresh: 'r', username: 'pizza' })
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
@@ -81,7 +81,7 @@ describe('<Order>', () => {
   it('shows the tracking header and the tracker while the order is on its way', async () => {
     renderOrder()
     expect(await screen.findByText(/It's in the oven/)).toBeTruthy()
-    expect(screen.getByText('Order #4 · jklimber')).toBeTruthy()
+    expect(screen.getByText('Order #4 · pizza')).toBeTruthy()
     expect(screen.getByText('~10 min')).toBeTruthy()
     expect(screen.getByText('NOW')).toBeTruthy()
     expect(screen.getByText('Your 2-flavor pizza')).toBeTruthy()

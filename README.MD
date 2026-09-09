@@ -47,9 +47,9 @@ Logins:
 
 | Who | Credentials | Where |
 |---|---|---|
-| Demo customer | `jklimber` / `start123` | the frontend (also printed on its sign-in screen) |
-| Two more customers | `kimberly` / `start123`, `carlos` / `start123` | the frontend; they prove orders stay private |
-| Staff | `admin` / `admin123` | `/admin/` only |
+| Demo customer | `pizza` / `pizza` | the frontend (also printed on its sign-in screen) |
+| Two more customers | `kimberly` / `pizza`, `carlos` / `pizza` | the frontend; they prove orders stay private |
+| Staff | `pizza-admin` / `pizza-admin` | `/admin/` only |
 
 The staff account is refused at `POST /api/auth/` with *"Staff accounts sign
 in at /admin/."*, so it cannot sign in on the frontend. That is enforced in
@@ -146,7 +146,7 @@ client can go straight to its tracking screen:
 ```json
 {
   "id": 7,
-  "user": "jklimber",
+  "user": "pizza",
   "status": "Ordered",
   "status_label": "Ordered",
   "created_at": "2026-09-09T17:33:23.030216Z",

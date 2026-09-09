@@ -19,7 +19,7 @@ export function apiBase(): string {
 }
 
 /** Printed on the sign-in screen and the about page. Matches seed_demo. */
-export const DEMO_LOGIN = { username: 'jklimber', password: 'start123' } as const
+export const DEMO_LOGIN = { username: 'pizza', password: 'pizza' } as const
 
 /** The four stages of Order.status, in order. Same strings as the API. */
 export const STAGES = ['Ordered', 'In the oven', 'Out for delivery', 'Delivered'] as const
