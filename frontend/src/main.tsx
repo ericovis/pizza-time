@@ -9,6 +9,7 @@ import Header from './components/Header'
 import MobileNav from './components/MobileNav'
 import Toast from './components/Toast'
 import RequireAuth from './components/RequireAuth'
+import { REPO_URL } from './lib/config'
 
 import { AuthProvider } from './state/auth'
 import { CatalogProvider } from './state/catalog'
@@ -38,7 +39,10 @@ function Layout() {
       <Outlet />
       <footer className="site-footer">
         <span>Pizza Time · wood-fired since the classroom days</span>
-        <span>8 slices · up to 8 flavors · $5 delivery</span>
+        <span>
+          8 slices · up to 8 flavors · $5 delivery ·{' '}
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
+        </span>
       </footer>
       <Toast />
       <MobileNav />

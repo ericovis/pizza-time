@@ -18,7 +18,10 @@ export function apiBase(): string {
   return base.replace(/\/+$/, '')
 }
 
-/** Printed on the sign-in screen and the about page. Matches seed_demo. */
+/** Where the code lives. Linked from the About page and the footer. */
+export const REPO_URL = 'https://github.com/ericovis/pizza-time'
+
+/** Printed on the sign-in screen. Matches seed_demo. */
 export const DEMO_LOGIN = { username: 'pizza', password: 'pizza' } as const
 
 /** The four stages of Order.status, in order. Same strings as the API. */

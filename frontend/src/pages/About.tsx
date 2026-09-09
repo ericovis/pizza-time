@@ -1,3 +1,4 @@
+import { REPO_URL } from '../lib/config'
 import '../styles/pages/about.css'
 
 /** The ABOUT screen: what this app is, and where its API lives. */
@@ -31,6 +32,13 @@ export function About() {
         <div className="about-card">
           <p className="about-card-label">Two services</p>
           <p>The API and this frontend are separate containers; the frontend reads its API base URL at start-up from the environment.</p>
+        </div>
+        <div className="about-card">
+          <p className="about-card-label">Source</p>
+          <p>
+            The whole thing is open on GitHub:{' '}
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer">ericovis/pizza-time</a>
+          </p>
         </div>
       </div>
     </main>
