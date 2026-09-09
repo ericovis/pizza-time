@@ -90,6 +90,20 @@ describe('<Order>', () => {
     expect(screen.getByText('$17.23')).toBeTruthy()
   })
 
+  it('shows the line total for a repeated pie, with the unit price in the detail line', async () => {
+    served = {
+      ...order,
+      items: [
+        { name: 'Cheese', slices: [1, 1, 1, 1, 1, 1, 1, 1], flavors: ['Cheese'], quantity: 2, unit_price: '11.23', line_total: '22.46', is_custom: false },
+      ],
+      total: '27.46',
+    }
+    renderOrder()
+    expect(await screen.findByText('$22.46')).toBeTruthy()
+    expect(screen.getByText('Cheese · ×2 at $11.23')).toBeTruthy()
+    expect(screen.queryByText('$11.23')).toBeNull()
+  })
+
   it('is a plain detail screen for a delivered order', async () => {
     served = { ...order, status: 'Delivered', status_label: 'Delivered' }
     renderOrder()

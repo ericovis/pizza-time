@@ -443,7 +443,7 @@ Run with `docker compose run --rm api uv run manage.py test`.
 - `SeedCommandTests`: command creates eleven pizzas, demo user can log in,
   demo user has four orders, running it twice creates nothing new, the
   staff user cannot log in through `/api/auth/`.
-- `MigrationTests` (optional): apply 0002 on a test database, insert an
+- `OrderItemDataMigrationTests` (`test_migrations.py`): apply 0002 on a test database, insert an
   order with two pizzas, migrate forward, assert two `OrderItem` rows.
 
 Frontend: Vitest unit tests for the cart reducer (`state/cart.tsx`),

@@ -11,7 +11,7 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 
 import PizzaArt from '../components/PizzaArt'
 import { CART_FULL_MESSAGE } from '../lib/config'
-import { customKey, useCart } from '../state/cart'
+import { customKey, menuKey, useCart } from '../state/cart'
 import { useCatalog } from '../state/catalog'
 import { useToast } from '../state/toast'
 import { SLICE_COUNT, WEDGES, angleDelta, angleTo } from '../lib/geometry'
@@ -58,7 +58,7 @@ interface Drag {
 
 export function Builder() {
   const { pizzas, loading, error, byId, bySlug, slugsFor, reload } = useCatalog()
-  const { addCustom, isFull, items } = useCart()
+  const { addCustom, addMenu, isFull, items } = useCart()
   const { show } = useToast()
 
   const [slices, setSlices] = useState<number[]>(emptySlices)
@@ -192,15 +192,22 @@ export function Builder() {
       show('Fill all 8 slices first')
       return
     }
-    const key = customKey(slices)
+    // A pie painted with a single flavor is the menu pizza, so it joins the
+    // menu row in the cart (same key, same name the server will snapshot)
+    // instead of sitting next to it as a separate custom item.
+    const wholePizza = flavorCount === 1 ? byId(distinctFlavors(slices)[0]) : undefined
+    const key = wholePizza ? menuKey(wholePizza.id) : customKey(slices)
     if (isFull && !items.some((it) => it.key === key)) {
       show(CART_FULL_MESSAGE)
       return
     }
-    const name = flavorCount === 1
-      ? `Whole ${byId(distinctFlavors(slices)[0])?.name ?? 'pizza'}`
-      : `Your ${flavorCount}-flavor pizza`
-    addCustom(slices, { name, detail: breakdown })
+    if (wholePizza) {
+      addMenu(wholePizza)
+      bump('[data-cart-badge]')
+      show(`${wholePizza.name} added to your order`)
+      return
+    }
+    addCustom(slices, { detail: breakdown })
     bump('[data-cart-badge]')
     show(`Custom pizza added · ${priceStr}`)
   }
@@ -315,8 +322,16 @@ export function Builder() {
               <div className="total-figure total-figure--lg">{priceStr}</div>
               <div className="summary-price-note">priced at the top flavor</div>
             </div>
-            <button type="button" className="btn btn-magenta btn-block" onClick={addBuilder}>
-              {complete ? `Add to order · ${priceStr}` : `${remaining} slices to go`}
+            <button
+              type="button"
+              className="btn btn-magenta btn-block"
+              onClick={addBuilder}
+              disabled={!complete}
+              aria-disabled={!complete}
+            >
+              {complete
+                ? `Add to order · ${priceStr}`
+                : `${remaining} ${remaining === 1 ? 'slice' : 'slices'} to go`}
             </button>
           </div>
         </div>

@@ -16,11 +16,14 @@ const POLL_MS = 5000
 
 const DELIVERED = 'Delivered'
 
-/** The row's second line: the distinct flavors, plus the quantity when the
- *  customer ordered the same pie more than once. */
+/** The row's second line: the distinct flavors, plus the quantity and unit
+ *  price when the customer ordered the same pie more than once. The price
+ *  column then shows the line total, so the rows add up to the order total. */
 function detailFor(item: OrderItem): string {
   const flavors = item.flavors.join(' · ')
-  return item.quantity > 1 ? `${flavors} · ×${item.quantity}` : flavors
+  return item.quantity > 1
+    ? `${flavors} · ×${item.quantity} at ${money(item.unit_price)}`
+    : flavors
 }
 
 /** The ORDER screen: the detail rows of one order, with the celebration header
@@ -188,7 +191,7 @@ export function Order() {
               <div className="item-name">{item.name}</div>
               <div className="item-detail">{detailFor(item)}</div>
             </div>
-            <div className="item-price">{money(item.unit_price)}</div>
+            <div className="item-price">{money(item.line_total)}</div>
           </div>
         ))}
       </div>
