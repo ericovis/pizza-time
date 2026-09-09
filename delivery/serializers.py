@@ -9,6 +9,15 @@ from delivery.pricing import item_name, unit_price
 
 SLICES_PER_PIZZA = 8
 MAX_QUANTITY = 9
+# A cart is a demo cart. The cap is here so an unbounded `items` list cannot
+# push the order total past what Order.total can hold, which the database
+# answers with a DataError -- a 500 for what is really a bad request.
+MAX_ITEMS = 20
+
+_TOTAL_FIELD = Order._meta.get_field("total")
+MAX_ORDER_TOTAL = Decimal(10) ** (
+    _TOTAL_FIELD.max_digits - _TOTAL_FIELD.decimal_places
+) - Decimal("0.01")
 
 
 class PizzaSerializer(serializers.HyperlinkedModelSerializer):
@@ -41,7 +50,28 @@ class OrderItemReadSerializer(serializers.ModelSerializer):
         )
 
     def get_flavors(self, item):
-        return [pizza.name for pizza in item.flavors]
+        names = self._pizza_names()
+        # dict.fromkeys keeps the first appearance of each flavor, so the
+        # names come back in slice order. Ids of pizzas that have since been
+        # deleted are skipped; the snapshot `name` still describes the pie.
+        return [
+            names[pizza_id]
+            for pizza_id in dict.fromkeys(item.slices)
+            if pizza_id in names
+        ]
+
+    def _pizza_names(self):
+        """The whole catalog, id to name, fetched once per response.
+
+        `OrderItem.flavors` costs a query per pie, which an order list turns
+        into a dozen. The catalog is eleven rows: read it once and cache it on
+        the serializer context, which the view rebuilds for every request.
+        """
+        names = self.context.get("pizza_names")
+        if names is None:
+            names = dict(Pizza.objects.values_list("pk", "name"))
+            self.context["pizza_names"] = names
+        return names
 
 
 class GetOrderSerializer(serializers.HyperlinkedModelSerializer):
@@ -120,7 +150,14 @@ class NewOrderSerializer(serializers.ModelSerializer):
     viewset has no detail route of its own.
     """
 
-    items = OrderItemWriteSerializer(many=True, allow_empty=False)
+    items = OrderItemWriteSerializer(
+        many=True,
+        allow_empty=False,
+        max_length=MAX_ITEMS,
+        error_messages={
+            "max_length": "An order can hold at most %s pizzas." % MAX_ITEMS
+        },
+    )
     user = serializers.SlugRelatedField(read_only=True, slug_field="username")
     status_label = serializers.CharField(source="get_status_display", read_only=True)
     url = serializers.HyperlinkedIdentityField(view_name="order-detail")
@@ -138,6 +175,20 @@ class NewOrderSerializer(serializers.ModelSerializer):
             "url",
         )
         read_only_fields = ("id", "status", "created_at", "total")
+
+    def validate(self, attrs):
+        # The item cap keeps menu-priced orders well inside Order.total, but a
+        # pizza priced near the Pizza.price ceiling could still overflow it.
+        # Refuse in the serializer so the answer is a 400, never a DataError.
+        subtotal = sum(
+            (item["unit_price"] * item["quantity"] for item in attrs["items"]),
+            Decimal("0.00"),
+        )
+        if subtotal + settings.DELIVERY_FEE > MAX_ORDER_TOTAL:
+            raise serializers.ValidationError(
+                {"items": "That order is too expensive to place."}
+            )
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data):

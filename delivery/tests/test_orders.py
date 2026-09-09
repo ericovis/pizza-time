@@ -167,6 +167,34 @@ class OrderCreateTests(OrderTestCase):
             response.data["url"].endswith("/api/orders/get/%s/" % response.data["id"])
         )
 
+    def test_an_order_cannot_hold_unlimited_items(self):
+        # An unbounded list used to reach the database and overflow
+        # Order.total, which came back as a 500.
+        response = self.place(*[{"slices": self.whole(self.margherita)}] * 21)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["items"]["non_field_errors"][0],
+            "An order can hold at most 20 pizzas.",
+        )
+        self.assertFalse(Order.objects.exists())
+
+    def test_an_order_cannot_overflow_the_total_column(self):
+        # Twenty of the priciest pizza the catalog can hold, nine of each:
+        # more than Order.total's seven digits. A 400, not a DataError.
+        luxury = Pizza.objects.create(
+            name="Gold Leaf", slug="gold-leaf", price=Decimal("999.99")
+        )
+        response = self.place(
+            *[{"slices": self.whole(luxury), "quantity": 9}] * 20
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["items"][0], "That order is too expensive to place."
+        )
+        self.assertFalse(Order.objects.exists())
+
     def test_anonymous_cannot_place_an_order(self):
         self.client.force_authenticate(user=None)
         response = self.place({"slices": self.whole(self.margherita)})
@@ -271,6 +299,23 @@ class OrderReadTests(OrderTestCase):
         self.assertEqual(response.data["delivery_fee"], "5.00")
         self.assertEqual(response.data["total"], "44.00")
         self.assertIsNotNone(response.data["created_at"])
+
+    def test_list_costs_the_same_number_of_queries_whatever_it_holds(self):
+        """One query for the orders, one for their items, one for the catalog.
+
+        `OrderItem.flavors` reads the catalog per pie, so rendering the list
+        without a cached name map cost a query per item.
+        """
+        with self.assertNumQueries(3):
+            response = self.client.get("/api/orders/get/")
+        self.assertEqual(len(response.data), 1)
+
+        for _ in range(4):
+            self.make_order(self.margherita, self.pepperoni)
+
+        with self.assertNumQueries(3):
+            response = self.client.get("/api/orders/get/")
+        self.assertEqual(len(response.data), 5)
 
     def test_list_is_newest_first(self):
         older = self.make_order(self.pepperoni)

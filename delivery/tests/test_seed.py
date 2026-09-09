@@ -68,6 +68,17 @@ class SeedCommandTests(APITestCase):
         oldest = Order.objects.filter(user__username="jklimber").last()
         self.assertEqual(oldest.total, Decimal("29.23"))
 
+    def test_every_seeded_total_matches_a_recompute(self):
+        # Hand-typed totals were what made the old fixture inconsistent.
+        for order in Order.objects.all():
+            with self.subTest(order=order.pk):
+                self.assertEqual(order.total, order.recompute_total(save=False))
+
+    def test_a_fresh_database_holds_the_whole_demo(self):
+        self.assertEqual(Pizza.objects.count(), 11)
+        self.assertEqual(User.objects.count(), 4)
+        self.assertEqual(Order.objects.count(), 6)
+
     def test_second_run_creates_nothing(self):
         before = (
             Pizza.objects.count(),
