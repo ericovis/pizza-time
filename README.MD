@@ -209,7 +209,10 @@ Runtime configuration: Vite bakes `import.meta.env` in at build time, which
 would break the "one image, any API URL" rule, so the API base comes from
 `window.PIZZA_API_URL` in [public/config.js](/frontend/public/config.js). The
 container regenerates that file on start-up from the `API_URL` environment
-variable, and nginx serves it `no-store`:
+variable, and nginx serves it `no-store`. When `API_URL` is empty (the
+default) the app calls port 8000 on whatever host the page was loaded from,
+so opening `http://<your-lan-ip>:8080` from a phone on the same network just
+works. Set it when the API lives somewhere else:
 
 ```
 API_URL=https://api.example.com docker compose up frontend

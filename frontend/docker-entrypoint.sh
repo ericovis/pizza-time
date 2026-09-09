@@ -4,7 +4,9 @@
 # a plain <script src="/config.js"> before the module bundle.
 set -e
 
-API_URL="${API_URL:-http://localhost:8000}"
+# Empty means "same host as the page, port 8000", resolved in the browser, so
+# the same image works from the laptop and from a phone on the same network.
+API_URL="${API_URL:-}"
 
 # The value lands inside a JavaScript string literal, so anything that could
 # close it early is dropped rather than written out.
@@ -15,4 +17,4 @@ cat > /usr/share/nginx/html/config.js <<CONFIG
 window.PIZZA_API_URL = "${SAFE_API_URL}";
 CONFIG
 
-echo "pizza-time frontend: API_URL=${SAFE_API_URL}"
+echo "pizza-time frontend: API_URL=${SAFE_API_URL:-<same host as the page, port 8000>}"

@@ -9,13 +9,23 @@ declare global {
   }
 }
 
-const FALLBACK_API = 'http://localhost:8000'
+const API_PORT = '8000'
 
-/** Origin of the API, never with a trailing slash. */
+/** Origin of the API, never with a trailing slash.
+
+    With API_URL unset the API is assumed to live on the same host the page was
+    loaded from, on port 8000. That is what Docker Compose publishes, and it
+    keeps a phone on the same network working: it opened http://<laptop-ip>:8080,
+    so it calls http://<laptop-ip>:8000, where "localhost" would have pointed
+    the phone at itself. */
 export function apiBase(): string {
   const configured = typeof window !== 'undefined' ? window.PIZZA_API_URL : undefined
-  const base = (configured && configured.trim()) || FALLBACK_API
-  return base.replace(/\/+$/, '')
+  if (configured && configured.trim()) return configured.trim().replace(/\/+$/, '')
+  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+    return `${protocol}//${window.location.hostname}:${API_PORT}`
+  }
+  return `http://localhost:${API_PORT}`
 }
 
 /** Where the code lives. Linked from the About page and the footer. */

@@ -50,9 +50,11 @@ services:
     depends_on:
       - api
     environment:
-      # The browser resolves this, not the container, so it must be an address
-      # reachable from your machine.
-      API_URL: ${API_URL:-http://localhost:8000}
+      # The browser resolves this, not the container. Leave it empty and the
+      # app calls port 8000 on whatever host it was loaded from, which works
+      # from this machine and from a phone on the same network alike. Set it
+      # only when the API lives somewhere else.
+      API_URL: ${API_URL:-}
 
   # Hot reload without rebuilding the image: docker compose --profile dev up.
   # It takes the same port as `frontend`, so only one of them runs at a time.
