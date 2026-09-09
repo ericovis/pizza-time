@@ -7,6 +7,7 @@ list and docker-compose.yml for the local development values.
 """
 
 import os
+from decimal import Decimal
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +59,18 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 }
+
+# --- Demo data -------------------------------------------------------------
+# The delivery fee the server adds to every non-empty order. Authoritative:
+# the frontend keeps its own copy only for the cart preview.
+DELIVERY_FEE = Decimal(os.environ.get("DELIVERY_FEE", "5.00"))
+
+# Credentials created by the seed_demo management command, which runs on every
+# boot. The customer login is printed on the sign-in screen.
+DEMO_USERNAME = os.environ.get("DEMO_USERNAME", "jklimber")
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "start123")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 
 SIMPLE_JWT = {
     # "JWT" is what the original djangorestframework-jwt used and what the

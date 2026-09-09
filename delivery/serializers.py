@@ -13,22 +13,22 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class PizzaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Pizza
-        fields = ("id", "name", "price", "url")
+        fields = ("id", "slug", "name", "price", "toppings", "description", "url")
 
 
 class GetOrderSerializer(serializers.HyperlinkedModelSerializer):
-    """Read shape: pizzas and user rendered as names rather than links."""
+    """Read shape: items and user rendered as names rather than links."""
 
-    pizzas = serializers.StringRelatedField(many=True)
+    items = serializers.StringRelatedField(many=True, read_only=True)
     user = serializers.SlugRelatedField(read_only=True, slug_field="username")
 
     class Meta:
         model = Order
-        fields = ("id", "user", "pizzas", "total", "status", "url")
+        fields = ("id", "user", "items", "total", "status", "created_at", "url")
 
 
 class NewOrderSerializer(serializers.HyperlinkedModelSerializer):
-    """Write shape: pizzas are posted as hyperlinks.
+    """Write shape.
 
     `user` is taken from the authenticated request rather than the payload, so
     an order can only ever be created for the caller.
@@ -39,4 +39,4 @@ class NewOrderSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Order
-        fields = ("id", "user", "pizzas", "total", "status", "url")
+        fields = ("id", "user", "total", "status", "created_at", "url")
