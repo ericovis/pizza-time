@@ -13,11 +13,16 @@ export interface PizzaArtProps {
   style?: CSSProperties
   /** Decorative by default; pass a label when the art is the only content. */
   title?: string
+  /** fx.bump('[data-pizza]') targets this; the design puts it on the element. */
+  'data-pizza'?: string
 }
 
 /** Thin wrapper around the <pizza-art> custom element. React 19 forwards the
  *  string props straight through as attributes, so there is nothing else to do. */
-export function PizzaArt({ slices, theme = 'neon', cuts = false, className, style, title }: PizzaArtProps) {
+export function PizzaArt({
+  slices, theme = 'neon', cuts = false, className, style, title,
+  'data-pizza': dataPizza,
+}: PizzaArtProps) {
   const value = Array.isArray(slices) ? slices.join(',') : slices
   return (
     <pizza-art
@@ -27,6 +32,7 @@ export function PizzaArt({ slices, theme = 'neon', cuts = false, className, styl
       className={className}
       style={style}
       title={title}
+      data-pizza={dataPizza}
       aria-hidden={title ? undefined : true}
     />
   )

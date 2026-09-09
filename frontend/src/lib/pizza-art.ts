@@ -44,6 +44,28 @@ export const RECIPES: Record<string, Recipe> = {
   pepperoni: { cheese: true, toppings: [['pepperoni', 4], ['oregano', 3]] },
 }
 
+/* The prototype carried a `swatch` colour on every pizza; the API does not send
+   one, so the eleven seeded slugs keep theirs here. Used for the dot that flies
+   into the cart badge (Menu) and onto a painted slice (Builder). */
+export const SWATCHES: Record<string, string> = {
+  cheese: '#f2c85b',
+  mexican: '#c9482f',
+  marinara: '#b53a2b',
+  prosciutto: '#d98a8f',
+  funghi: '#c9ad85',
+  napoletana: '#7f8a93',
+  broccoli: '#3e7d3a',
+  portuguesa: '#f1b636',
+  capricciosa: '#a7b28d',
+  vegetarian: '#3e8b3e',
+  pepperoni: '#b8322a',
+}
+
+/** The swatch for a slug, falling back to the cheese colour like RECIPES does. */
+export function swatchFor(slug: string | undefined): string {
+  return (slug && SWATCHES[slug]) || SWATCHES[FALLBACK_SLUG]
+}
+
 /** Deterministic per-slug seed, so the same pizza always looks the same. */
 function seedFor(slug: string): number {
   const i = (SLUG_ORDER as readonly string[]).indexOf(slug)

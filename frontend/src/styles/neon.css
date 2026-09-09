@@ -259,7 +259,10 @@
   cursor: pointer;
   padding: 0;
   margin-bottom: 18px;
-  display: inline-block;
+  /* Block-level so the pill that follows it on the not-found state starts its
+     own line; fit-content keeps the hover target to the text. */
+  display: block;
+  width: fit-content;
 }
 .link-back:hover { color: var(--magenta); }
 
@@ -573,6 +576,15 @@
   box-shadow: 0 0 0 1px var(--lime), 0 24px 60px rgba(198, 255, 61, .22);
   transform: translateY(-4px);
 }
+/* The dashed card is a link, so its guts are <span>s. Give the card parts back
+   the boxes they get on a <div>. */
+.card--dashed .card-index,
+.card--dashed .card-art,
+.card--dashed .card-art-glow,
+.card--dashed .card-pizza-spin,
+.card--dashed .card-title,
+.card--dashed .card-text { display: block; }
+.card--dashed .card-body { display: flex; }
 .card-index {
   position: absolute;
   top: 14px;
@@ -746,7 +758,7 @@
   gap: 16px;
 }
 .summary-copy { flex: 1 1 200px; min-width: 0; }
-.summary-copy p { margin: 0; }
+.summary-copy > p:last-child { margin: 0; }
 .summary-price { text-align: right; }
 .summary-price-note { font-size: 12px; color: var(--ink-60); }
 
