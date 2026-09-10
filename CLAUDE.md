@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A demo pizza-ordering app — a Django REST Framework API plus a React 19 single-page frontend. It is a Docker-only project: Docker Compose is the sole supported way to run it, and there are no cloud deployment assets.
+A demo pizza-ordering app — a Django REST Framework API plus a React 19 single-page frontend. Docker Compose is the development setup; `caramelo.yaml` deploys it to a Caramelo machine. Nothing else: no Kubernetes, no cloud-provider assets.
 
 The stack is **Python 3.12, Django 5.2 LTS, DRF, PostgreSQL, uv** on the API side and **React 19 + Vite + TypeScript** on the frontend. Do not reintroduce Python 2 idioms, and do not reintroduce AngularJS: the old vendored frontend is gone.
 
@@ -44,16 +44,37 @@ Config comes from environment variables (`.env.example` documents them all; Comp
 
 Tests: `delivery/tests/` (a package: `test_auth`, `test_pizzas`, `test_orders`, `test_seed`) is the regression net — run it after any change to models, serializers, permissions or settings. Vitest covers the cart reducer, `lib/pricing.ts` and `lib/dates.ts`. There is no linter or CI.
 
+## Deployment (Caramelo)
+
+`caramelo.yaml` is the whole deployment: `deps.db` (Postgres 17), one `web` service built from the root `Dockerfile`, `deploy.before`/`deploy.check` as the gates, and `envs.production.hosts` for the public name. There is no Ansible, no Helm, no second config file.
+
+```bash
+caramelo env create production --production   # branch, worktree, ports, Postgres, generated DB_PASSWORD
+caramelo deploy production                    # build → migrate → replicas → check → flip → watch → promote
+caramelo releases production                  # the history; `caramelo rollback production` walks it back
+caramelo test production                      # the Django suite in the release image
+caramelo config show production               # every effective field and where it came from
+```
+
+Things that are decisions, not accidents:
+
+- **One service, not two.** A deploy's gates run in the first exposed service's image, so `migrate` needs Django; and the app has one public hostname. Both point the same way: the API image carries the frontend.
+- **Per-environment values live in the vault, not in the file.** `envs:` may only override hosts, replicas, resources and the deploy policy, and every secret an environment resolves is injected as an environment variable — so `SECRET_KEY`, `ADMIN_PASSWORD` and `CORS_ALLOWED_ORIGINS` are `caramelo secrets set` entries that `settings.py` reads by name. `caramelo.yaml` deliberately does not reference them.
+- `${deps.db.password}` is the environment's `DB_PASSWORD` secret, generated at `env create` because Postgres reads its password exactly once, when it initialises its data directory. Changing it afterwards changes the vault and not the server.
+- `ALLOWED_HOSTS` is `*` on purpose: the health probe arrives with a loopback `Host` and `deploy.check` with a container name, neither of which can be listed in advance, and the edge only ever forwards names it already matched.
+- `GUNICORN_CMD_ARGS` carries the worker count and `--forwarded-allow-ips`, so the image's `CMD` stays the one command that starts the app.
+
 ## Architecture
 
-### The two-service split is the point
+### Two origins in development, one in production
 
-The API and the frontend are deliberately separate origins: the `api` and `frontend` containers. Consequences that keep mattering:
+The frontend never learns its API base at build time, which is what lets the same code run both ways:
 
-- **CORS is always live.** `CORS_ALLOW_ALL_ORIGINS` is on unless `CORS_ALLOWED_ORIGINS` is set. Don't "simplify" by making the frontend same-origin.
-  `CORS_ALLOW_CREDENTIALS` follows `CORS_ALLOWED_ORIGINS`: credentials are only offered to an explicitly listed origin. The frontend sends a Bearer token, never a cookie, so it never needs them — and the browsable API and admin do use session cookies, which is exactly why they must not be reachable from any origin.
-- **The frontend gets its API base at runtime**, from `window.PIZZA_API_URL` in `frontend/public/config.js`, loaded by a plain `<script>` in `index.html` before the bundle. `frontend/docker-entrypoint.sh` regenerates that file on container start from `API_URL` (nginx images run everything in `/docker-entrypoint.d/`), and nginx serves it `no-store`. Never use `import.meta.env` for the API URL — Vite would bake it into the bundle and break "one image, any API URL". Read it through `apiBase()` in `src/lib/config.ts`; with `API_URL` empty (the default) it resolves to port 8000 on the page's own hostname, so LAN devices work without configuration.
-- Django serves no app templates. `STATIC_ROOT`/`collectstatic` exist only for the admin and the DRF browsable API.
+- **Under Compose the API and the frontend are separate origins** — the `api` and `frontend` containers — so **CORS is live**. `CORS_ALLOW_ALL_ORIGINS` is on unless `CORS_ALLOWED_ORIGINS` is set. `CORS_ALLOW_CREDENTIALS` follows `CORS_ALLOWED_ORIGINS`: credentials are only offered to an explicitly listed origin. The frontend sends a Bearer token, never a cookie, so it never needs them — and the browsable API and admin do use session cookies, which is exactly why they must not be reachable from any origin.
+- **A Caramelo deployment is one origin.** The root `Dockerfile` builds the Vite bundle in its first stage and WhiteNoise serves it at the web root (`FRONTEND_DIST`), beside `/api/`, `/admin/` and `/static/`. That is a deliberate change from the split, made because the app has one public hostname and because a deploy's gates (`deploy.before`, the migration) run in the first exposed service's image — an nginx service in front would be the one asked to run `migrate`. Hash routing is why no catch-all view is needed: `/` is the only HTML path a browser ever requests.
+- **The frontend gets its API base at runtime**, from `window.PIZZA_API_URL` in `frontend/public/config.js`, loaded by a plain `<script>` in `index.html` before the bundle. `frontend/docker-entrypoint.sh` regenerates that file on container start from `API_URL` (nginx images run everything in `/docker-entrypoint.d/`), and nginx serves it `no-store`; the API image overwrites it in the build with `window.location.origin`, which is the same-origin answer. Never use `import.meta.env` for the API URL — Vite would bake it into the bundle and break "one image, any API URL". Read it through `apiBase()` in `src/lib/config.ts`; with `API_URL` empty (the Compose default) it resolves to port 8000 on the page's own hostname, so LAN devices work without configuration.
+- Django serves no app *templates*. `collectstatic` runs in the image build (`CompressedManifestStaticFilesStorage`), and `STATIC_ROOT` and `FRONTEND_DIST` both live outside `/code` — `/srv/static` and `/srv/pizza-frontend` — because `/code` is bind-mounted in development and would hide them.
+- `TRUST_PROXY=true` turns on `SECURE_PROXY_SSL_HEADER` and secure cookies. Set it only where a proxy you control terminates TLS (Caramelo's edge does); Compose does not.
 
 ### Data model
 

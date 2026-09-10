@@ -14,6 +14,9 @@ services:
       timeout: 5s
       retries: 10
 
+  # The image also carries a build of the SPA (see Dockerfile), so
+  # http://localhost:8000/ serves the app same-origin, the way a deployment
+  # does. That copy is baked at build time: the hot-reload loop is :8080.
   api:
     build: .
     restart: unless-stopped
@@ -41,6 +44,9 @@ services:
       DEMO_PASSWORD: ${DEMO_PASSWORD:-pizza}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-pizza-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-pizza-admin}
+      # Nothing terminates TLS in front of Compose, so Django must not believe
+      # X-Forwarded-Proto here. See .env.example.
+      TRUST_PROXY: ${TRUST_PROXY:-false}
 
   frontend:
     build: ./frontend

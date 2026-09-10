@@ -1,0 +1,102 @@
+# How Caramelo runs pizza-time.
+#
+# One service where docker-compose.yml has two. Compose keeps the API and the
+# frontend on separate origins — that is the development setup and CORS is live
+# there — but a deployment answers on a single hostname, so the image built here
+# carries both: gunicorn serves /api/ and /admin/, and WhiteNoise serves the
+# Vite bundle at the web root (FRONTEND_DIST in settings.py, built in the
+# Dockerfile's first stage). The app is hash-routed, so "/" is the only HTML
+# path a browser ever asks for.
+#
+# It also has to be one service because a deploy's gates run in the first
+# exposed service's image, and `migrate` needs Django: a second, nginx-only
+# service in front would be the one asked to run the migration.
+
+name: pizza-time
+
+# Every environment lands at <env>.pizza-time.asrv.click; production is the
+# apex itself, under envs: below. Each name needs its own A record — the zone
+# has no wildcard.
+domain: pizza-time.asrv.click
+
+deps:
+  # Known image: port 5432, `pg_isready` readiness, /var/lib/postgresql/data on
+  # the env's volume. The password is the environment's DB_PASSWORD secret,
+  # chosen before `env create` or generated there; the database and the role
+  # are the image's own `postgres`, which is what DATABASE_NAME and
+  # DATABASE_USER below say.
+  db: postgres:17-alpine
+
+services:
+  web:
+    # The repo's Dockerfile: the SPA is built in it, so a release is one image
+    # and a rollback puts the frontend back with the API.
+    build: .
+    # What the image's CMD binds. The edge reaches it on the env's own port.
+    port: 8000
+    # A GET the public can make and the machine repeats every ten seconds: it
+    # proves gunicorn answers, the database is reachable and the menu is
+    # seeded, which is the whole boot chain in one request.
+    health: /api/pizzas/get/
+    expose: https
+    resources:
+      memory: 512m
+      cpu: 1
+
+# `caramelo test production` (or any env) runs the regression net in a one-off
+# of the same image, with the database wired.
+test: python manage.py test
+
+env:
+  DEBUG: "false"
+  # The edge is the only thing that can reach the container, and it routes by
+  # name; what arrives here as Host is a hostname it already matched, or —
+  # for the health probe and the deploy check — a loopback address or a
+  # container name, neither of which can be listed in advance.
+  ALLOWED_HOSTS: "*"
+  # The edge terminates TLS and forwards X-Forwarded-Proto, so Django knows the
+  # request was secure: secure cookies, and https in the URLs the API hands out.
+  TRUST_PROXY: "true"
+  DATABASE_HOST: ${deps.db.host}
+  DATABASE_PORT: ${deps.db.port}
+  DATABASE_NAME: postgres
+  DATABASE_USER: postgres
+  DATABASE_PASSWORD: ${deps.db.password}
+  # Read by gunicorn itself, so the image's CMD stays the one command that
+  # starts this app. --forwarded-allow-ips: only the edge can reach the
+  # published port (it is on 127.0.0.1 of the box) and it rewrites
+  # X-Forwarded-For with the address it saw, but the connection arrives from
+  # the Docker gateway rather than from loopback.
+  GUNICORN_CMD_ARGS: --workers 2 --access-logfile - --forwarded-allow-ips "*"
+  # SECRET_KEY, ADMIN_PASSWORD and CORS_ALLOWED_ORIGINS are secrets of the
+  # vault — every secret an environment resolves is injected as a variable,
+  # named here or not. See README.MD, "Deploying with Caramelo".
+
+deploy:
+  # The migration and the demo data, as a one-off of the new release before any
+  # new replica starts, so a replica never meets a schema it does not know.
+  # seed_demo is idempotent (keyed on pizza slug and username).
+  before: python manage.py migrate --noinput && python manage.py seed_demo
+  # The smoke test, against the new pool by container name, before the flip:
+  # the menu comes back from the database, and index.html is the built app
+  # rather than a 404 from a bundle that failed to land in the image.
+  check: >-
+    python -c "import json, os, urllib.request as u;
+    b = os.environ['CARAMELO_CHECK_URL'].rstrip('/');
+    menu = json.load(u.urlopen(b + '/api/pizzas/get/', timeout=10));
+    home = u.urlopen(b + '/', timeout=10).read();
+    assert menu, 'the menu is empty';
+    assert b'/assets/' in home, 'index.html is not the built app'"
+  watch: 60s
+  max_errors: 5%
+  promote: auto
+  keep: 5
+
+envs:
+  production:
+    hosts: [pizza-time.asrv.click]
+    services:
+      web:
+        # Two replicas so a deploy has an old pool to hold while the new one
+        # takes over, and so one can leave the pool while the other serves.
+        replicas: 2

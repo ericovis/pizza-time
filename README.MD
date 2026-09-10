@@ -2,9 +2,13 @@ Pizza Time!
 ===========
 
 A small pizza-ordering demo app — a Django REST Framework API and a React
-frontend — that runs entirely under Docker Compose.
+frontend. It runs under Docker Compose locally and deploys to a
+[Caramelo](https://github.com/ericovis/caramelo) machine from one
+`caramelo.yaml`.
 
-The API and the frontend are separate services, each in its own container.
+Locally the API and the frontend are separate services, each in its own
+container. Deployed, they are one: the API image builds the frontend and
+serves it, so the whole app answers on a single hostname.
 
 Build a pizza slice by slice (eight slices, up to eight flavors), add menu
 pizzas to a cart, place an order and watch it move through the kitchen.
@@ -77,6 +81,50 @@ docker compose --profile dev up
 
 Configuration lives in environment variables; copy `.env.example` to `.env`
 to override any of them. Compose picks `.env` up automatically.
+
+Deploying with Caramelo
+-----------------------
+
+`caramelo.yaml` describes the whole deployment: one Postgres dependency, one
+`web` service built from the root `Dockerfile`, the migration and the smoke
+test a deploy has to pass, and the hostname production answers on. The image
+carries both halves of the app — gunicorn serves `/api/`, `/admin/` and
+`/static/`, and WhiteNoise serves the Vite bundle at `/` — so there is one
+origin, one certificate and one thing to roll back.
+
+Point `pizza-time.asrv.click` (and any other name in the file) at the machine,
+then, from a checkout:
+
+```
+caramelo secrets set --app-scope SECRET_KEY='<50+ random characters>'
+caramelo secrets set production ADMIN_PASSWORD='<the /admin/ password>'
+caramelo secrets set production CORS_ALLOWED_ORIGINS=https://pizza-time.asrv.click
+
+caramelo env create production --production
+caramelo deploy production
+```
+
+Every secret an environment resolves is handed to its containers as an
+environment variable, which is how `settings.py` reads all three without
+`caramelo.yaml` naming them. Postgres gets a generated `DB_PASSWORD` at
+`env create` — the only moment a database reads one — and `caramelo.yaml`
+passes it on as `DATABASE_PASSWORD`.
+
+A deploy builds the image from the commit, runs `migrate` and `seed_demo` as a
+one-off before any new container starts, health-checks the new replicas,
+smoke-tests them by name (the menu comes back, `index.html` is the built app),
+flips all traffic at once and then holds the old replicas for a minute in case
+the error rate says to go back.
+
+```
+caramelo releases production      # what was deployed, by whom, and how it ended
+caramelo rollback production      # the previous release, without a build
+caramelo logs production -f       # gunicorn's access log, merged
+caramelo test production          # the Django suite, in the same image
+```
+
+`DEMO_USERNAME`/`DEMO_PASSWORD` are deliberately left at `pizza`/`pizza`: the
+sign-in screen prints them.
 
 Tests
 -----

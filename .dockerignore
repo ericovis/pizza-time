@@ -4,6 +4,8 @@ __pycache__/
 *.py[cod]
 .venv/
 staticfiles/
-# The API image never serves the SPA; nginx does, from its own build context.
-frontend/
+# The API image builds the SPA in its own stage (see Dockerfile), so
+# frontend/ is part of the context — everything npm would regenerate is not.
+frontend/node_modules/
+frontend/dist/
 docs/

@@ -31,8 +31,9 @@ DEBUG = env_bool("DEBUG", True)
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 
-# The frontend is served from a different origin than the API (its own nginx
-# container), so CORS is always in play. Allow-all stays the default for the demo; set
+# Under Docker Compose the frontend has its own nginx container and its own
+# origin, so CORS is in play; served from FRONTEND_DIST below it is same-origin
+# and CORS never applies. Allow-all stays the default for the demo; set
 # CORS_ALLOWED_ORIGINS to lock it down.
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
@@ -92,6 +93,10 @@ SIMPLE_JWT = {
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves the admin's and the browsable API's static files, and — when
+    # FRONTEND_DIST points at a build — the single-page app itself, at the web
+    # root. Nothing else in the image can serve a file: gunicorn does not.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -148,7 +153,45 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Only the admin and the DRF browsable API are served from here; the pizza
-# frontend is a separate container (see frontend/).
+# The admin's and the browsable API's own assets. `collectstatic` runs in the
+# image build; WhiteNoise serves what it collected.
 STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# Outside the repo in the image (STATIC_ROOT=/srv/static), because /code is a
+# bind mount in development and would hide the manifest the storage below
+# needs.
+STATIC_ROOT = Path(os.environ.get("STATIC_ROOT", BASE_DIR / "staticfiles"))
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # Hashed names plus a manifest, so /static/ can be cached forever. Every
+    # file the admin references must exist at boot, which is why the image
+    # runs collectstatic and nothing serves static from a bind mount.
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
+# --- The single-page app, when this image carries it ------------------------
+# One origin in production: the Dockerfile builds frontend/ and leaves the
+# bundle here, and WhiteNoise serves that directory at the web root (index.html
+# for "/", the fingerprinted assets under /assets/ and /fonts/). The app is
+# hash-routed, so "/" is the only HTML path a browser ever asks for and no
+# catch-all view is needed. Unset — or pointing at a directory that does not
+# exist, which is what the development bind mount over /code produces — leaves
+# Django serving nothing but /api/, /admin/ and /static/, exactly as before,
+# and the frontend container answers on its own port.
+FRONTEND_DIST = os.environ.get("FRONTEND_DIST", "")
+if FRONTEND_DIST and Path(FRONTEND_DIST).is_dir():
+    WHITENOISE_ROOT = FRONTEND_DIST
+    WHITENOISE_INDEX_FILE = True
+
+# --- Behind a TLS-terminating proxy -----------------------------------------
+# Caramelo's edge (and any other reverse proxy) answers 443 and forwards over
+# plain HTTP, so Django only knows the request was secure if it is told. Off by
+# default: nothing in front of Docker Compose sets these headers, and trusting
+# a header the client could have sent itself would be a lie about the
+# connection. Turn it on wherever a proxy you control terminates TLS.
+TRUST_PROXY = env_bool("TRUST_PROXY")
+if TRUST_PROXY:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    # With the scheme known, the admin's CSRF origin check passes on its own
+    # and the session cookie can be marked secure.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
